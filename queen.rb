@@ -8,11 +8,11 @@ class Queen < ChessPiece
     self.row = row
   end
 
-  def move_ok?( new_col, new_row )
+  def move_ok?( new_row, new_col )
     col_move = (col - new_col).abs
     row_move = (row - new_row).abs
 
-    if ( col_move == 1 and row_move == 2 ) or ( col_move == 2 and row_move == 1 )
+    if ( col_move == row_move ) || ( col_move == 0 && row_move != 0 ) || ( col_move != 0 && row_move == 0 )
       true
     else
       false

@@ -8,26 +8,14 @@ class King < ChessPiece
     self.row = row
   end
 
-  def move_ok?( new_col, new_row, move_type=:normal )
-    col_move = new_col - col
-    row_move = new_row - row
+  def move_ok?( new_row, new_col )
+    col_move = (col - new_col).abs
+    row_move = (row - new_row).abs
 
-    # Case statement to account for different move types
-    case move_type
-    when :normal
-      if col_move == 0 and row_move == 1
-        return true
-      end
-    when :first
-      if col_move == 0 and row_move == 2
-        return true
-      end
-    when :capture
-      if ( col_move == 1 and row_move == 1 ) or ( col_move == 1 and row_move == 1 )
-        return true
-      end
+    if !( col_move == 0 and row_move == 0 ) and ( col_move <= 1 and row_move <= 1 )
+      true
+    else
+      false
     end
-
-    return false
   end
 end
