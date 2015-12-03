@@ -8,7 +8,7 @@ class Pawn < ChessPiece
     self.row = row
   end
 
-  def move_ok?( new_col, new_row, move_type=:normal )
+  def move_ok?( new_row, new_col, move_type=:normal )
     col_move = new_col - col
     row_move = new_row - row
 

@@ -8,9 +8,12 @@ class Knight < ChessPiece
     self.row = row
   end
 
-  def move_ok?( new_col, new_row )
+  def move_ok?( new_row, new_col )
     col_move = (col - new_col).abs
     row_move = (row - new_row).abs
+
+    puts col_move
+    puts row_move
 
     if ( col_move == 1 and row_move == 2 ) or ( col_move == 2 and row_move == 1 )
       true

@@ -24,22 +24,22 @@ class ChessBoard
                 [nil,nil,nil,nil,nil,nil,nil,nil] ]
 
     pieces =  [
-                King.new(:white, 3,0), Queen.new(:white, 4,0), King.new(:black, 3,7), Queen.new(:black, 4,7),
-                Bishop.new(:white, 2,0), Bishop.new(:white, 5,0), Bishop.new(:black, 2,7), Bishop.new(:black, 5,7),
-                Knight.new(:white, 1,0), Knight.new(:white, 6,0), Knight.new(:black, 1,7), Knight.new(:black, 6,7),
-                Rook.new(:white, 0,0), Rook.new(:white, 7,0), Rook.new(:black, 0,7), Rook.new(:black, 7,7)
+                King.new(:white, 0,3), Queen.new(:white, 0,4), King.new(:black, 7,3), Queen.new(:black, 7,4),
+                Bishop.new(:white, 0,2), Bishop.new(:white, 0,5), Bishop.new(:black, 7,2), Bishop.new(:black, 7,5),
+                Knight.new(:white, 0,1), Knight.new(:white, 0,6), Knight.new(:black, 7,1), Knight.new(:black, 7,6),
+                Rook.new(:white, 0,0), Rook.new(:white, 0,7), Rook.new(:black, 7,0), Rook.new(:black, 7,7)
               ]
 
-    (0..7).each do |num|
-      pieces << Pawn.new(:white, num, 1)
+    (0..7).each do |col|
+      pieces << Pawn.new(:white, 1, col )
     end
 
-    (0..7).each do |num|
-      pieces << Pawn.new(:black, num, 6)
+    (0..7).each do |col|
+      pieces << Pawn.new(:black, 6, col )
     end
 
     pieces.each do |piece|
-      self.board[piece.col][piece.row] = piece
+      self.board[piece.row][piece.col] = piece
     end
 
     self.selected = nil
@@ -139,7 +139,7 @@ class ChessBoard
     if selected
       col = selected[0]
       row = selected[1]
-      board[col][row].unselect
+      board[row][col].unselect
       self.selected = nil
     end
   end
@@ -147,36 +147,53 @@ class ChessBoard
   # Takes a standard chess coordinate string and returns array indices
   def chess_coords_to_indices( coord_string )
     m = coord_string.match(/(\w)(\d)/)
-    row = m[1]
-    col = m[2]
-    if ('a'..'h').include?(row) && (1..8).include?(col.to_i)
-      [ COL_NAMES[row.to_sym], col.to_i - 1 ]
+    col = m[1]
+    row = m[2]
+    
+    if ('a'..'h').include?(col) && (1..8).include?(row.to_i)
+      [ row.to_i - 1, COL_NAMES[col.to_sym] ]
     else
       nil
     end
   end
 
-  def move_ok?( from, to )
-    if coords = chess_coords_to_indices( to )
+  def move_ok?( coord_string )
+    if coords = chess_coords_to_indices( coord_string )
+      from_row = selected[0]
+      from_col = selected[1]
+
       row = coords[0]
       col = coords[1]
       if col >= 0 and col < 8 and row >=0 and row < 8
         # if the space is empty (nil), the move is OK
         if !board[row][col]
+          if board[from_row][from_col].move_ok?(row,col)
+            true
+          else
+            puts "illegal move for piece"
+            false
+          end
         else
+          puts "illegal destination"
           false
         end
       else
+        puts "out of bounds!"
         false
       end
     end
   end
 
   def move( coord_string )
+    from_row = selected[0]
+    from_col = selected[1]
+ 
     coords = chess_coords_to_indices( coord_string )
     row = coords[0]
     col = coords[1]
-    
-    board[row][col].select
+
+    board[row][col] = board[from_row][from_col]
+    board[from_row][from_col] = nil
+    board[row][col].unselect
   end
 end
