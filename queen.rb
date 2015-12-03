@@ -1,6 +1,6 @@
 require './chess_piece'
 
-class Knight < ChessPiece
+class Queen < ChessPiece
 
   def initialize( team, row, col )
     self.team = team
