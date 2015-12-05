@@ -1,13 +1,13 @@
 #!/usr/bin/env ruby
 
-require './chess_board.rb'
+require_relative './chess_board.rb'
 
 class Chess
 
   attr_accessor :current_player, :selecting, :moving
 
   def initialize
-    @chess_board = ChessBoard.new
+    @chess_board = ChessBoard.new(:standard)
     print @chess_board.board_state
     self.current_player = :white
     self.selecting = false
@@ -55,10 +55,7 @@ class Chess
       # if selecting, ask the player for a selection
       selection = ask_selection
 
-      if @chess_board.select_ok?(current_player,selection)
-        # if the selection is valid, 
-        # select that piece
-        @chess_board.select(selection)
+      if @chess_board.select(current_player,selection)
         # turn selecting off 
         self.selecting = false
         # turn moving on
@@ -75,34 +72,37 @@ class Chess
       # if moving, ask for a move
       move = ask_move
 
-      if @chess_board.move_ok?(current_player,move)
-        # if move is valid
-        #ask for confirmation
-        puts "Confirm move? (y/n)"
-        confirmation = gets[0].downcase
-        if confirmation == "y"
-        #if yes or anything else starting with y:
-          # complete the move
-          @chess_board.move(move)
-          # moving off
-          self.moving = false
-          # switch players
-          switch_player
-        else
-        # if no (or anything not starting with y):
+      puts "Confirm move? (y/n)"
+      confirmation = gets[0].downcase
+      if confirmation == "y"
+      #if yes or anything else starting with y:
+      
+        # complete the move
+        if @chess_board.move(current_player,move)
+          # if move is valid
+          #ask for confirmation
+        elsif
+        # if move is not valid
           # revert to selecting on
           self.selecting = true
           # moving off
           self.moving = false
+          @chess_board.unselect
         end
-      elsif
-      # if move is not valid
+
+        # moving off
+        self.moving = false
+        # switch players
+        switch_player
+      else
+      # if no (or anything not starting with y):
         # revert to selecting on
         self.selecting = true
         # moving off
         self.moving = false
-        @chess_board.unselect
       end
+
+      
     end
   end
 

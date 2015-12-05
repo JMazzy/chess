@@ -1,27 +1,29 @@
 require 'colorize'
 
-require './pawn.rb'
-require './king.rb'
-require './queen.rb'
-require './bishop.rb'
-require './knight.rb'
-require './rook.rb'
+require_relative './pawn.rb'
+require_relative './king.rb'
+require_relative './queen.rb'
+require_relative './bishop.rb'
+require_relative './knight.rb'
+require_relative './rook.rb'
 
 class ChessBoard
 
   attr_accessor :board, :captured_pieces, :selected
 
-  COL_NAMES = { a: 0, b: 1, c: 2, d: 3, e: 4, f: 5, g: 6, h: 7 }
-  
-  def initialize
-    @board =  [ [nil,nil,nil,nil,nil,nil,nil,nil],
-                [nil,nil,nil,nil,nil,nil,nil,nil],
-                [nil,nil,nil,nil,nil,nil,nil,nil],
-                [nil,nil,nil,nil,nil,nil,nil,nil],
-                [nil,nil,nil,nil,nil,nil,nil,nil],
-                [nil,nil,nil,nil,nil,nil,nil,nil],
-                [nil,nil,nil,nil,nil,nil,nil,nil],
-                [nil,nil,nil,nil,nil,nil,nil,nil] ]
+  def empty_board
+    self.board =  [ [nil,nil,nil,nil,nil,nil,nil,nil],
+                    [nil,nil,nil,nil,nil,nil,nil,nil],
+                    [nil,nil,nil,nil,nil,nil,nil,nil],
+                    [nil,nil,nil,nil,nil,nil,nil,nil],
+                    [nil,nil,nil,nil,nil,nil,nil,nil],
+                    [nil,nil,nil,nil,nil,nil,nil,nil],
+                    [nil,nil,nil,nil,nil,nil,nil,nil],
+                    [nil,nil,nil,nil,nil,nil,nil,nil] ]
+  end
+
+  def standard_board
+    empty_board
 
     pieces =  [
                 King.new(:white, 0,3), Queen.new(:white, 0,4), King.new(:black, 7,3), Queen.new(:black, 7,4),
@@ -41,10 +43,27 @@ class ChessBoard
     pieces.each do |piece|
       self.board[piece.row][piece.col] = piece
     end
+  end
+  
+  def initialize(board_type=:standard)
+    if board_type == "standard" || board_type == :standard
+      standard_board
+    elsif board_type == "blank" || board_type == :blank
+      empty_board
+    end
 
     self.selected = nil
 
     self.captured_pieces = { white: [], black: [] }
+  end
+
+  def board_square(coord_string)
+    if coords = chess_coords_to_indices( coord_string )
+      row = coords[0]
+      col = coords[1]
+
+      board[row][col]
+    end
   end
 
   # Generate a terminal output string representing the board
@@ -133,10 +152,15 @@ class ChessBoard
     end
   end
 
-  def select( coord_string )
-    unselect
-    coords = chess_coords_to_indices( coord_string )
-    self.selected = coords
+  def select( player, coord_string )
+    if select_ok?(player, coord_string)
+      unselect
+      coords = chess_coords_to_indices( coord_string )
+      self.selected = coords
+      true
+    else
+      false
+    end
   end
 
   def unselect
@@ -147,16 +171,23 @@ class ChessBoard
 
   # Takes a standard chess coordinate string and returns array indices
   def chess_coords_to_indices( coord_string )
-    ###Needs to check for bad string (here or at the gets itself)
     m = coord_string.match(/(\w)(\d)/)
     col = m[1]
     row = m[2]
+
+    columns = { a: 0, b: 1, c: 2, d: 3, e: 4, f: 5, g: 6, h: 7 }
     
     if ('a'..'h').include?(col) && (1..8).include?(row.to_i)
-      [ row.to_i - 1, COL_NAMES[col.to_sym] ]
+      [ row.to_i - 1, columns[col.to_sym] ]
     else
       nil
     end
+  end
+
+  def indices_to_chess_coords( row, col )
+    columns = ['a','b','c','d','e','f','g','h']
+
+    "#{columns[col]}#{row+1}"
   end
 
   def move_ok?( player, coord_string )
@@ -222,32 +253,37 @@ class ChessBoard
     end
   end
 
-  def move( coord_string )
-    # grab the "from" indices from selection data
-    from_row = selected[0]
-    from_col = selected[1]
-    from_piece = board[from_row][from_col]
+  def move( player, coord_string )
+    if move_ok?(player,coord_string)
+      # grab the "from" indices from selection data
+      from_row = selected[0]
+      from_col = selected[1]
+      from_piece = board[from_row][from_col]
 
-    # unselect once piece identified
-    unselect
-    
-    # convert the coordinates to array indices
-    coords = chess_coords_to_indices( coord_string )
-    to_row = coords[0]
-    to_col = coords[1]
+      # unselect once piece identified
+      unselect
+      
+      # convert the coordinates to array indices
+      coords = chess_coords_to_indices( coord_string )
+      to_row = coords[0]
+      to_col = coords[1]
 
-    # get the captured piece (nil if no capture)
-    captured_piece = board[to_row][to_col]
-    if captured_piece # if the square is occupied (not nil)
-      # stick the piece in the captured pile of its team
-      captured_pieces[captured_piece.team] << captured_piece
+      # get the captured piece (nil if no capture)
+      captured_piece = board[to_row][to_col]
+      if captured_piece # if the square is occupied (not nil)
+        # stick the piece in the captured pile of its team
+        captured_pieces[captured_piece.team] << captured_piece
+      end
+
+      # call the move method on the piece (varies by piece)
+      from_piece.move(to_row,to_col)
+
+      # actually move the piece, leaving a blank square
+      board[to_row][to_col] = from_piece.dup
+      board[from_row][from_col] = nil
+      true
+    else
+      false
     end
-
-    # call the move method on the piece (varies by piece)
-    from_piece.move(to_row,to_col)
-
-    # actually move the piece, leaving a blank square
-    board[to_row][to_col] = from_piece.dup
-    board[from_row][from_col] = nil
   end
 end

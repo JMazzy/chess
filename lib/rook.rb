@@ -1,4 +1,4 @@
-require './chess_piece'
+require_relative './chess_piece.rb'
 
 class Rook < ChessPiece
 

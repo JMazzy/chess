@@ -1,6 +1,6 @@
-require './chess_piece'
+require_relative './chess_piece.rb'
 
-class King < ChessPiece
+class Queen < ChessPiece
 
   def initialize( team, row, col )
     super
@@ -10,7 +10,7 @@ class King < ChessPiece
     col_move = (col - new_col).abs
     row_move = (row - new_row).abs
 
-    if !( col_move == 0 and row_move == 0 ) and ( col_move <= 1 and row_move <= 1 )
+    if ( col_move == row_move ) || ( col_move == 0 && row_move != 0 ) || ( col_move != 0 && row_move == 0 )
       true
     else
       false
