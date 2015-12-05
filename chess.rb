@@ -15,13 +15,26 @@ class Chess
   end
 
   def ask_selection
-    print "#{current_player.to_s.capitalize} select piece to move: "
-    gets.chomp
+    puts "It is #{current_player.to_s.capitalize}'s turn."
+    print "Select piece to move: "
+    select_string = gets.chomp.downcase
+    if select_string.match(/\w\d/)
+      return select_string
+    else
+      puts "Selection must be in the form 'a1'"
+      ask_selection
+    end
   end
 
   def ask_move
-    print "#{current_player.to_s.capitalize} choose where you want to move: "
-    gets.chomp
+    print "Move #{@chess_board.board[@chess_board.selected[0]][@chess_board.selected[1]].class} to : "
+    move_string = gets.chomp.downcase
+    if move_string.match(/\w\d/)
+      return move_string
+    else
+      puts "Move must be in the form 'a1'"
+      ask_move
+    end
   end
 
   def switch_player
@@ -42,7 +55,7 @@ class Chess
       # if selecting, ask the player for a selection
       selection = ask_selection
 
-      if @chess_board.select_ok?(selection)
+      if @chess_board.select_ok?(current_player,selection)
         # if the selection is valid, 
         # select that piece
         @chess_board.select(selection)
@@ -62,7 +75,7 @@ class Chess
       # if moving, ask for a move
       move = ask_move
 
-      if @chess_board.move_ok?(move)
+      if @chess_board.move_ok?(current_player,move)
         # if move is valid
         #ask for confirmation
         puts "Confirm move? (y/n)"
@@ -76,7 +89,7 @@ class Chess
           # switch players
           switch_player
         else
-        # if no (or anything not starting with y)
+        # if no (or anything not starting with y):
           # revert to selecting on
           self.selecting = true
           # moving off
@@ -95,6 +108,7 @@ class Chess
 
   def update
     handle_selection
+    print @chess_board.board_state
     handle_moving
   end
 

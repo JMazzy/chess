@@ -3,12 +3,10 @@ require './chess_piece'
 class King < ChessPiece
 
   def initialize( team, row, col )
-    self.team = team
-    self.col = col
-    self.row = row
+    super
   end
 
-  def move_ok?( new_row, new_col )
+  def move_ok?( new_row, new_col, move_type=:normal )
     col_move = (col - new_col).abs
     row_move = (row - new_row).abs
 

@@ -9,7 +9,7 @@ require './rook.rb'
 
 class ChessBoard
 
-  attr_accessor :board, :off_board, :selected
+  attr_accessor :board, :captured_pieces, :selected
 
   COL_NAMES = { a: 0, b: 1, c: 2, d: 3, e: 4, f: 5, g: 6, h: 7 }
   
@@ -44,7 +44,7 @@ class ChessBoard
 
     self.selected = nil
 
-    @off_board = { white: [], black: [] }
+    self.captured_pieces = { white: [], black: [] }
   end
 
   # Generate a terminal output string representing the board
@@ -74,7 +74,7 @@ class ChessBoard
         if square
           piece_color = square.team
 
-          if square.selected
+          if selected == [ 7 - row, col ]
             tile_color = :yellow
           end
 
@@ -106,46 +106,48 @@ class ChessBoard
     board_string
   end
 
-  def select_ok?( coord_string )
+  def select_ok?( player, coord_string )
     if coords = chess_coords_to_indices( coord_string )
       row = coords[0]
       col = coords[1]
-      if col >= 0 and col < 8 and row >=0 and row < 8
+      if col >= 0 && col < 8 && row >=0 && row < 8
         if board[row][col]
-          true
+          # Make sure the piece belongs to the current player
+          if board[row][col].team == player
+            true
+          else
+            puts "cannot select opponent's piece!"
+            false
+          end
         else
+          puts "no piece on that square!"
           false
         end
       else
+        puts "selection is off the board!"
         false
       end
     else
+      puts "invalid selection"
       false
     end
   end
 
   def select( coord_string )
     unselect
-
     coords = chess_coords_to_indices( coord_string )
-    row = coords[0]
-    col = coords[1]
-    
     self.selected = coords
-    board[row][col].select
   end
 
   def unselect
     if selected
-      col = selected[0]
-      row = selected[1]
-      board[row][col].unselect
       self.selected = nil
     end
   end
 
   # Takes a standard chess coordinate string and returns array indices
   def chess_coords_to_indices( coord_string )
+    ###Needs to check for bad string (here or at the gets itself)
     m = coord_string.match(/(\w)(\d)/)
     col = m[1]
     row = m[2]
@@ -157,43 +159,95 @@ class ChessBoard
     end
   end
 
-  def move_ok?( coord_string )
+  def move_ok?( player, coord_string )
     if coords = chess_coords_to_indices( coord_string )
-      from_row = selected[0]
-      from_col = selected[1]
+      to_row = coords[0]
+      to_col = coords[1]
 
-      row = coords[0]
-      col = coords[1]
-      if col >= 0 and col < 8 and row >=0 and row < 8
-        # if the space is empty (nil), the move is OK
-        if !board[row][col]
-          if board[from_row][from_col].move_ok?(row,col)
-            true
-          else
-            puts "illegal move for piece"
-            false
+      #Make sure the move is in the bounds of the board
+      if to_col >= 0 && to_col < 8 && to_row >=0 && to_row < 8
+        from_row = selected[0]
+        from_col = selected[1]
+
+        from_piece = board[from_row][from_col]
+        to_square = board[to_row][to_col]
+
+        # the move type (default normal, could also be capture)
+        move_type = :normal
+
+        # Knights (only) are allowed to jump over other pieces
+        unless from_piece.class == Knight 
+          # Check for pieces on intervening squares
+
+          # The single step corresponding to the move (magnitude one, same sign)
+          row_step = to_row <=> from_row
+          col_step = to_col <=> from_col
+
+          temp_row = from_row + row_step
+          temp_col = from_col + col_step
+          until temp_row == to_row && temp_col == to_col
+            # if a piece is there
+            if board[temp_row][temp_col]
+              puts "A piece is blocking."
+              return false
+            end
+
+            temp_row += row_step
+            temp_col += col_step
           end
+        end
+
+        # if square is occupied (not nil)
+        if to_square 
+          if from_piece.team != to_square.team
+            # set the move type to capture
+            move_type = :capture
+          else
+            puts "Illegal destination"
+            return false
+          end
+        end
+
+        # If the move is legal for the moving piece
+        if from_piece.move_ok?(to_row,to_col,move_type)
+          return true
         else
-          puts "illegal destination"
-          false
+          puts "Illegal move for piece"
+          return false
         end
       else
-        puts "out of bounds!"
-        false
+        puts "Out of bounds!"
+        return false
       end
     end
   end
 
   def move( coord_string )
+    # grab the "from" indices from selection data
     from_row = selected[0]
     from_col = selected[1]
- 
-    coords = chess_coords_to_indices( coord_string )
-    row = coords[0]
-    col = coords[1]
+    from_piece = board[from_row][from_col]
 
-    board[row][col] = board[from_row][from_col]
+    # unselect once piece identified
+    unselect
+    
+    # convert the coordinates to array indices
+    coords = chess_coords_to_indices( coord_string )
+    to_row = coords[0]
+    to_col = coords[1]
+
+    # get the captured piece (nil if no capture)
+    captured_piece = board[to_row][to_col]
+    if captured_piece # if the square is occupied (not nil)
+      # stick the piece in the captured pile of its team
+      captured_pieces[captured_piece.team] << captured_piece
+    end
+
+    # call the move method on the piece (varies by piece)
+    from_piece.move(to_row,to_col)
+
+    # actually move the piece, leaving a blank square
+    board[to_row][to_col] = from_piece.dup
     board[from_row][from_col] = nil
-    board[row][col].unselect
   end
 end

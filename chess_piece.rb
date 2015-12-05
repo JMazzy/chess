@@ -1,20 +1,15 @@
 class ChessPiece
   
-  attr_accessor :team, :col, :row, :selected
+  attr_accessor :team, :col, :row
 
-  def initialize
-    self.selected = false
+  def initialize(team,row,col)
+    self.team = team
+    self.col = col
+    self.row = row
   end
 
-  def select
-    if !selected
-      self.selected = true
-    end
-  end
-
-  def unselect
-    if selected
-      self.selected = false
-    end
+  def move(row,col)
+    self.col = col
+    self.row = row
   end
 end
