@@ -18,7 +18,7 @@ class Chess
     puts "It is #{current_player.to_s.capitalize}'s turn."
     print "Select piece to move: "
     select_string = gets.chomp.downcase
-    if select_string.match(/\w\d/)
+    if select_string.match(/\w\d/) || select_string[0..2] == "0-0"
       return select_string
     else
       puts "Selection must be in the form 'a1'"

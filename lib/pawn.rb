@@ -2,11 +2,8 @@ require_relative './chess_piece.rb'
 
 class Pawn < ChessPiece
 
-  attr_accessor :first_move
-
   def initialize( team, row, col )
     super
-    self.first_move = true
   end
 
   def move_ok?( new_row, new_col, move_type=:normal )
@@ -41,6 +38,8 @@ class Pawn < ChessPiece
         puts "Illegal move for pawn"
         false
       end
+    elsif move_type == :passant
+      #NEED TO IMPLIMENT EN PASSANT MOVES
     else
       puts "Bad move type"
       false
@@ -49,10 +48,6 @@ class Pawn < ChessPiece
 
   # Method called by the board when the piece is moved
   def move(row,col)
-    if first_move
-      self.first_move = false
-    end
-
     super
   end
 end
