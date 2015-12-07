@@ -4,11 +4,10 @@ require_relative './chess_board.rb'
 
 class Chess
 
-  attr_accessor :current_player, :selecting, :moving
+  attr_accessor :chess_board, :current_player, :selecting, :moving
 
   def initialize
-    @chess_board = ChessBoard.new(:standard)
-    print @chess_board.board_state
+    self.chess_board = ChessBoard.new(:standard)
     self.current_player = :white
     self.selecting = false
     self.moving = false
@@ -27,7 +26,7 @@ class Chess
   end
 
   def ask_move
-    print "Move #{@chess_board.board[@chess_board.selected[0]][@chess_board.selected[1]].class} to : "
+    print "Move #{chess_board.board[chess_board.selected[0]][chess_board.selected[1]].class} to: "
     move_string = gets.chomp.downcase
     if move_string.match(/\w\d/)
       return move_string
@@ -47,15 +46,13 @@ class Chess
 
   def handle_selection
     # if neither selecting or moving, set selecting to true
-    if !selecting && !moving
-      self.selecting = true
-    end
+    
 
     if selecting
       # if selecting, ask the player for a selection
       selection = ask_selection
 
-      if @chess_board.select(current_player,selection)
+      if chess_board.select(current_player,selection)
         # turn selecting off 
         self.selecting = false
         # turn moving on
@@ -68,52 +65,55 @@ class Chess
   end
 
   def handle_moving
-    if moving
-      # if moving, ask for a move
-      move = ask_move
+    # if moving, ask for a move
+    move = ask_move
 
-      puts "Confirm move? (y/n)"
-      confirmation = gets[0].downcase
-      if confirmation == "y"
-      #if yes or anything else starting with y:
-      
-        # complete the move
-        if @chess_board.move(current_player,move)
-          # if move is valid
-          #ask for confirmation
-        elsif
-        # if move is not valid
-          # revert to selecting on
-          self.selecting = true
-          # moving off
-          self.moving = false
-          @chess_board.unselect
-        end
-
+    print "Confirm move? (y/n): "
+    confirmation = gets[0].downcase
+    if confirmation == "y"
+    #if blank or anything else starting with y:
+    
+      # complete the move
+      if chess_board.move(current_player,move)
+        # if move is valid
         # moving off
         self.moving = false
+        self.selecting = true
+
+        puts chess_board.last_move_string
+
         # switch players
         switch_player
-      else
-      # if no (or anything not starting with y):
+      elsif
+      # if move is not valid
         # revert to selecting on
         self.selecting = true
         # moving off
         self.moving = false
+        chess_board.unselect
       end
-
-      
+    else
+    # if no (or anything not starting with y):
+      # revert to selecting on
+      self.selecting = true
+      # moving off
+      self.moving = false
     end
   end
 
   def update
-    handle_selection
-    print @chess_board.board_state
-    handle_moving
+    if selecting == moving
+      self.selecting = true
+      self.moving = false
+    elsif selecting
+      handle_selection 
+    elsif moving
+      handle_moving
+    end
   end
 
   def draw
-    print @chess_board.board_state
+    print chess_board.board_state
   end
 
   def game_loop

@@ -100,6 +100,21 @@ describe "pieces should move correctly" do
       #NEED A TEST FOR EN PASSANT
     end
 
+    it "promoted upon reaching 8th rank" do
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "b7", Pawn)).to eq true
+      expect(test_board.set_piece(:black, "e2", Pawn)).to eq true
+
+      expect(test_board.select(:white, "b7")).to eq true
+      expect(test_board.move(:white, "b8")).to eq true
+      expect(test_board.select(:black, "e2")).to eq true
+      expect(test_board.move(:black, "e1")).to eq true
+
+      #expect()
+    end
+
     it "doesn't move through pieces" do
       test_board = ChessBoard.new(:blank)
 

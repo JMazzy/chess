@@ -11,7 +11,7 @@ class ChessBoard
 
   #game states are :playing, :check, :checkmate
 
-  attr_accessor :board, :captured_pieces, :selected, :game_state
+  attr_accessor :board, :captured_pieces, :selected, :game_state, :last_move_string
 
   def empty_board
     self.board =  [ [nil,nil,nil,nil,nil,nil,nil,nil],
@@ -209,9 +209,41 @@ class ChessBoard
     "#{columns[col]}#{row+1}"
   end
 
+  def path_clear?(from_row,from_col,to_row,to_col)
+    
+    # Check for pieces on intervening squares
+    # The single step corresponding to the move (magnitude one, same sign)
+    row_step = to_row <=> from_row
+    col_step = to_col <=> from_col
+
+    temp_row = from_row + row_step
+    temp_col = from_col + col_step
+    
+    until temp_row == to_row && temp_col == to_col
+      if (0..7).include?(temp_row) && (0..7).include?(temp_col)
+
+        # if a piece is there
+        if board[temp_row][temp_col]
+          puts "A piece is blocking."
+          return false
+        end
+
+        temp_row += row_step
+        temp_col += col_step
+      else
+        return false
+      end
+    end
+
+    return true
+  end
+
   def move_ok?( player, coord_string )
-    # the move type (default normal, could also be :capture or :castle)
+    # the move type (default :normal, could also be :capture or :castle)
     move_type = :normal
+
+    from_row = selected[0]
+    from_col = selected[1]
 
     # Set the row and column
     if coords = chess_coords_to_indices( coord_string )
@@ -238,68 +270,51 @@ class ChessBoard
       puts "Bad input string"
       return false
     end
-
+    
     #Make sure the move is in the bounds of the board
     if to_col >= 0 && to_col < 8 && to_row >=0 && to_row < 8
-      
-      from_row = selected[0]
-      from_col = selected[1]
 
       from_piece = board[from_row][from_col]
       to_square = board[to_row][to_col]
 
       # Knights (only) are allowed to jump over other pieces
-      unless from_piece.class == Knight || move_type.to_s[0..5] == "castle"
-        # Check for pieces on intervening squares
-        # The single step corresponding to the move (magnitude one, same sign)
-        row_step = to_row <=> from_row
-        col_step = to_col <=> from_col
+      if from_piece.class == Knight || move_type.to_s[0..5] == "castle" || path_clear?(from_row,from_col,to_row, to_col) 
 
-        temp_row = from_row + row_step
-        temp_col = from_col + col_step
-        until temp_row == to_row && temp_col == to_col
-          # if a piece is there
-          if board[temp_row][temp_col]
-            puts "A piece is blocking."
+        # Setting move type
+        # if square is occupied (not nil)
+        if to_square
+          if from_piece.team != to_square.team
+            # set the move type to capture
+            move_type = :capture
+          else
+            puts "You can't capture your own piece!"
             return false
           end
-
-          temp_row += row_step
-          temp_col += col_step
         end
-      end
 
-      # Setting move type
-      # if square is occupied (not nil)
-      if to_square
-        if from_piece.team != to_square.team
-          # set the move type to capture
-          move_type = :capture
+        # If the move is legal for the moving piece
+        if from_piece.move_ok?(to_row,to_col,move_type)
+          if move_type.to_s[0..5] == "castle"
+            if move_type == :castle_ks
+              rook = board[to_row][7]
+            elsif move_type == :castle_qs
+              rook = board[to_row][0]
+            end
+
+            if rook.class == Rook && rook.first_move
+              return true
+            else 
+              return false
+            end
+          else
+            return true
+          end
         else
-          puts "Illegal destination"
+          puts "Illegal move for piece"
           return false
         end
-      end
-
-      # If the move is legal for the moving piece
-      if from_piece.move_ok?(to_row,to_col,move_type)
-        if move_type.to_s[0..5] == "castle"
-          if move_type == :castle_ks
-            rook = board[to_row][7]
-          elsif move_type == :castle_qs
-            rook = board[to_row][0]
-          end
-
-          if rook.class == Rook && rook.first_move
-            return true
-          else 
-            return false
-          end
-        else
-          return true
-        end
       else
-        puts "Illegal move for piece"
+        puts "Piece can't jump over other pieces"
         return false
       end
     else
@@ -313,7 +328,7 @@ class ChessBoard
       # grab the "from" indices from selection data
       from_row = selected[0]
       from_col = selected[1]
-      from_piece = board[from_row][from_col]
+      from_piece = board[from_row][from_col].dup
 
       # unselect once piece identified
       unselect
@@ -328,24 +343,30 @@ class ChessBoard
         if captured_piece # if the square is occupied (not nil)
           # stick the piece in the captured pile of its team
           captured_pieces[captured_piece.team] << captured_piece
+          move_phrase = "captured #{captured_piece.class} at #{coord_string}"
+        else
+          move_phrase = "to #{coord_string}"
         end
 
         # call the move method on the piece (varies by piece)
         from_piece.move(to_row,to_col)
 
         # actually move the piece, leaving a blank square
-        board[to_row][to_col] = from_piece.dup
+        board[to_row][to_col] = from_piece
         board[from_row][from_col] = nil
-        true
+
+        self.last_move_string = "#{player.capitalize} #{from_piece.class} #{move_phrase}"
       elsif coord_string[0..2] == "0-0"
         if coord_string == "0-0"
           to_col = 6
           rook_from_col = 7
           rook_to_col = 5
+          side = "king"
         elsif coord_string == "0-0-0"
           to_col = 2
           rook_from_col = 0
           rook_to_col = 3
+          side = "queen"
         end
 
         if player == :white
@@ -356,7 +377,7 @@ class ChessBoard
 
         from_piece.move(row,to_col)
 
-        board[row][to_col] = from_piece.dup
+        board[row][to_col] = from_piece
         board[row][from_col] = nil
 
         rook = board[row][rook_from_col].dup
@@ -364,8 +385,9 @@ class ChessBoard
         board[row][rook_to_col] = rook
         board[row][rook_from_col] = nil
 
-        true
+        self.last_move_string = "#{player.capitalize} castled #{side}side"
       end
+      true
     else
       false
     end
