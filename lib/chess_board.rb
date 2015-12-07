@@ -238,7 +238,21 @@ class ChessBoard
     return true
   end
 
-  def move_ok?( player, from_row, from_col, to_row, to_col, move_type=:normal )
+  def castle_ok?(move_type,to_row)
+    if move_type == :castle_ks
+      rook = board[to_row][7]
+    elsif move_type == :castle_qs
+      rook = board[to_row][0]
+    end
+
+    if rook.class == Rook && rook.first_move
+      return true
+    else 
+      return false
+    end
+  end
+
+  def move_ok?( from_row, from_col, to_row, to_col, move_type=:normal )
     #Make sure the move is in the bounds of the board
     if to_col >= 0 && to_col < 8 && to_row >=0 && to_row < 8
 
@@ -249,22 +263,14 @@ class ChessBoard
 
         # If the move is legal for the moving piece
         if from_piece.move_ok?(to_row,to_col,move_type)
+          
           if move_type.to_s[0..5] == "castle"
-            if move_type == :castle_ks
-              rook = board[to_row][7]
-            elsif move_type == :castle_qs
-              rook = board[to_row][0]
-            end
-
-            if rook.class == Rook && rook.first_move
-              return true
-            else 
-              return false
-            end
+            return castle_ok?
           else
             return true
           end
-        else
+
+        else # If it is an illegal move
           puts "Illegal move for piece"
           return false
         end
@@ -334,13 +340,16 @@ class ChessBoard
       to_col = coords[1]
     end
 
-    if move_ok?(player, from_row, from_col, to_row, to_col, move_type)
+    if move_ok?( from_row, from_col, to_row, to_col, move_type )
       # convert the coordinates to array indices
-      if coords = chess_coords_to_indices( coord_string )
+      if move_type == :normal
         normal_move(player, coord_string, from_row, from_col, to_row, to_col)
-      elsif coord_string[0..2] == "0-0"
+      elsif move_type == :capture
+        normal_move(player, coord_string, from_row, from_col, to_row, to_col)
+      elsif move_type == :castle_ks || move_type == :castle_qs
         castle_move(player,coord_string)
-      elsif coord_string[]
+      elsif move_type == :promote_move
+
       end
       unselect
       true
