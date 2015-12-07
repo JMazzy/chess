@@ -238,59 +238,14 @@ class ChessBoard
     return true
   end
 
-  def move_ok?( player, coord_string )
-    # the move type (default :normal, could also be :capture or :castle)
-    move_type = :normal
-
-    from_row = selected[0]
-    from_col = selected[1]
-
-    # Set the row and column
-    if coords = chess_coords_to_indices( coord_string )
-      to_row = coords[0]
-      to_col = coords[1]
-    elsif coord_string[0..2] == "0-0"
-      if coord_string == "0-0"
-        to_col = 6
-        move_type = :castle_ks
-      elsif coord_string == "0-0-0"
-        to_col = 2
-        move_type = :castle_qs
-      else
-        puts "Bad input string"
-        return false
-      end
-
-      if player == :white
-        to_row = 0
-      else
-        to_row = 7
-      end
-    else
-      puts "Bad input string"
-      return false
-    end
-    
+  def move_ok?( player, from_row, from_col, to_row, to_col, move_type=:normal )
     #Make sure the move is in the bounds of the board
     if to_col >= 0 && to_col < 8 && to_row >=0 && to_row < 8
 
       from_piece = board[from_row][from_col]
-      to_square = board[to_row][to_col]
 
       # Knights (only) are allowed to jump over other pieces
       if from_piece.class == Knight || move_type.to_s[0..5] == "castle" || path_clear?(from_row,from_col,to_row, to_col) 
-
-        # Setting move type
-        # if square is occupied (not nil)
-        if to_square
-          if from_piece.team != to_square.team
-            # set the move type to capture
-            move_type = :capture
-          else
-            puts "You can't capture your own piece!"
-            return false
-          end
-        end
 
         # If the move is legal for the moving piece
         if from_piece.move_ok?(to_row,to_col,move_type)
@@ -323,73 +278,137 @@ class ChessBoard
     end
   end
 
+  def find_move_type( player, coord_string )
+    from_row = selected[0]
+    from_col = selected[1]
+    from_square = board[from_row][from_col]
+
+    if coords = chess_coords_to_indices( coord_string )
+      to_row = coords[0]
+      to_col = coords[1]
+      to_square = board[to_row][to_col]
+      
+      if to_square && to_square.team != player
+        :capture
+      elsif from_square.class == Pawn 
+        if player == :white && from_row == 6 && to_row == 7
+          :promote
+        elsif player == :black && from_row == 1 && to_row == 0
+          :promote
+        else
+          :normal
+        end
+      else
+        puts "illegal move"
+      end
+    elsif coord_string == "0-0"
+      :castle_ks
+    elsif coord_string == "0-0-0"
+      :castle_qs
+    else
+      :normal
+    end
+  end
+
   def move( player, coord_string )
-    if move_ok?(player,coord_string)
-      # grab the "from" indices from selection data
-      from_row = selected[0]
-      from_col = selected[1]
-      from_piece = board[from_row][from_col].dup
+    from_row = selected[0]
+    from_col = selected[1]
 
-      # unselect once piece identified
-      unselect
+    move_type = find_move_type(player,coord_string)
+    
+    if move_type.to_s[0..5] == "castle"
+      if move_type == :castle_ks
+        to_col = 6
+      elsif move_type == :castle_qs
+        to_col = 2
+      end
 
+      if player == :white
+        to_row = 0
+      else
+        to_row = 7
+      end
+    else
+      coords = chess_coords_to_indices( coord_string )
+      to_row = coords[0]
+      to_col = coords[1]
+    end
+
+    if move_ok?(player, from_row, from_col, to_row, to_col, move_type)
       # convert the coordinates to array indices
       if coords = chess_coords_to_indices( coord_string )
-        to_row = coords[0]
-        to_col = coords[1]
-
-        # get the captured piece (nil if no capture)
-        captured_piece = board[to_row][to_col]
-        if captured_piece # if the square is occupied (not nil)
-          # stick the piece in the captured pile of its team
-          captured_pieces[captured_piece.team] << captured_piece
-          move_phrase = "captured #{captured_piece.class} at #{coord_string}"
-        else
-          move_phrase = "to #{coord_string}"
-        end
-
-        # call the move method on the piece (varies by piece)
-        from_piece.move(to_row,to_col)
-
-        # actually move the piece, leaving a blank square
-        board[to_row][to_col] = from_piece
-        board[from_row][from_col] = nil
-
-        self.last_move_string = "#{player.capitalize} #{from_piece.class} #{move_phrase}"
+        normal_move(player, coord_string, from_row, from_col, to_row, to_col)
       elsif coord_string[0..2] == "0-0"
-        if coord_string == "0-0"
-          to_col = 6
-          rook_from_col = 7
-          rook_to_col = 5
-          side = "king"
-        elsif coord_string == "0-0-0"
-          to_col = 2
-          rook_from_col = 0
-          rook_to_col = 3
-          side = "queen"
-        end
-
-        if player == :white
-          row = 0
-        else
-          row = 7
-        end
-
-        from_piece.move(row,to_col)
-
-        board[row][to_col] = from_piece
-        board[row][from_col] = nil
-
-        rook = board[row][rook_from_col].dup
-
-        board[row][rook_to_col] = rook
-        board[row][rook_from_col] = nil
-
-        self.last_move_string = "#{player.capitalize} castled #{side}side"
+        castle_move(player,coord_string)
+      elsif coord_string[]
       end
+      unselect
       true
     else
       false
     end
+  end
+
+  def normal_move(player, coord_string, from_row, from_col, to_row, to_col)
+    from_piece = board[from_row][from_col].dup
+
+    # get the captured piece (nil if no capture)
+    captured_piece = board[to_row][to_col]
+    if captured_piece # if the square is occupied (not nil)
+      # stick the piece in the captured pile of its team
+      captured_pieces[captured_piece.team] << captured_piece
+      move_phrase = "captured #{captured_piece.class} at #{coord_string}"
+    else
+      move_phrase = "to #{coord_string}"
+    end
+
+    # call the move method on the piece (varies by piece)
+    from_piece.move(to_row,to_col)
+
+    # actually move the piece, leaving a blank square
+    board[to_row][to_col] = from_piece
+    board[from_row][from_col] = nil
+
+    self.last_move_string = "#{player.capitalize} #{from_piece.class} #{move_phrase}"
+  end
+
+  def castle_move(player, coord_string)
+    if coord_string == "0-0"
+      to_col = 6
+      rook_from_col = 7
+      rook_to_col = 5
+      side = "king"
+    elsif coord_string == "0-0-0"
+      to_col = 2
+      rook_from_col = 0
+      rook_to_col = 3
+      side = "queen"
+    end
+
+    if player == :white
+      row = 0
+    else
+      row = 7
+    end
+
+    from_col = 4
+
+    from_piece = board[row][from_col].dup
+
+    from_piece.move(row,to_col)
+
+    board[row][to_col] = from_piece
+    board[row][from_col] = nil
+
+    rook = board[row][rook_from_col].dup
+
+    board[row][rook_to_col] = rook
+    board[row][rook_from_col] = nil
+
+    self.last_move_string = "#{player.capitalize} castled #{side}side"
+  end
+
+  def promote_move
+
   end
 end

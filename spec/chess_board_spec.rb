@@ -100,19 +100,32 @@ describe "pieces should move correctly" do
       #NEED A TEST FOR EN PASSANT
     end
 
-    it "promoted upon reaching 8th rank" do
+    it "promotion upon reaching far rank" do
       test_board = ChessBoard.new(:blank)
 
-      # Place the pieces
       expect(test_board.set_piece(:white, "b7", Pawn)).to eq true
+      expect(test_board.set_piece(:black, "c2", Pawn)).to eq true
+      expect(test_board.set_piece(:white, "d7", Pawn)).to eq true
       expect(test_board.set_piece(:black, "e2", Pawn)).to eq true
 
       expect(test_board.select(:white, "b7")).to eq true
       expect(test_board.move(:white, "b8")).to eq true
+      expect(test_board.select(:black, "c2")).to eq true
+      expect(test_board.move(:black, "c1")).to eq true
+      expect(test_board.select(:white, "d7")).to eq true
+      expect(test_board.move(:white, "d8")).to eq true
       expect(test_board.select(:black, "e2")).to eq true
       expect(test_board.move(:black, "e1")).to eq true
 
-      #expect()
+      expect(test_board.promote(:white, "b8", :queen)).to eq true
+      expect(test_board.promote(:black, "c1", :bishop)).to eq true
+      expect(test_board.promote(:white, "d8", :knight)).to eq true
+      expect(test_board.promote(:black, "e1", :rook)).to eq true
+
+      expect(test_board.board_square("b8").class).to eq Queen
+      expect(test_board.board_square("c1").class).to eq Bishop
+      expect(test_board.board_square("d8").class).to eq Knight
+      expect(test_board.board_square("e1").class).to eq Rook
     end
 
     it "doesn't move through pieces" do
