@@ -39,7 +39,7 @@ describe "pieces should move correctly" do
       expect(test_board.select(:white, "d2")).to eq true
       expect(test_board.move(:white, "d4")).to eq true
       expect(test_board.board_square("d4").class).to eq Pawn
-      
+
       # Second move
       expect(test_board.select(:white, "d4")).to eq true
       expect(test_board.move(:white, "d6")).to eq false
@@ -69,7 +69,7 @@ describe "pieces should move correctly" do
       test_board = ChessBoard.new(:blank)
 
       expect(test_board.set_piece(:white, "e2", Pawn)).to eq true
-      
+
       (3..6).each do |num|
         expect(test_board.select(:white, "e2")).to eq true
         expect(test_board.move(:white, "e#{2+num}")).to eq false
@@ -109,18 +109,13 @@ describe "pieces should move correctly" do
       expect(test_board.set_piece(:black, "e2", Pawn)).to eq true
 
       expect(test_board.select(:white, "b7")).to eq true
-      expect(test_board.move(:white, "b8")).to eq true
+      expect(test_board.move(:white, "b8Q")).to eq true
       expect(test_board.select(:black, "c2")).to eq true
-      expect(test_board.move(:black, "c1")).to eq true
+      expect(test_board.move(:black, "c1B")).to eq true
       expect(test_board.select(:white, "d7")).to eq true
-      expect(test_board.move(:white, "d8")).to eq true
+      expect(test_board.move(:white, "d8N")).to eq true
       expect(test_board.select(:black, "e2")).to eq true
-      expect(test_board.move(:black, "e1")).to eq true
-
-      expect(test_board.promote(:white, "b8", :queen)).to eq true
-      expect(test_board.promote(:black, "c1", :bishop)).to eq true
-      expect(test_board.promote(:white, "d8", :knight)).to eq true
-      expect(test_board.promote(:black, "e1", :rook)).to eq true
+      expect(test_board.move(:black, "e1R")).to eq true
 
       expect(test_board.board_square("b8").class).to eq Queen
       expect(test_board.board_square("c1").class).to eq Bishop

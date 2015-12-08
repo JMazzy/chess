@@ -1,5 +1,3 @@
-require 'colorize'
-
 require_relative './pawn.rb'
 require_relative './king.rb'
 require_relative './queen.rb'
@@ -64,7 +62,7 @@ class ChessBoard
 
     self.captured_pieces = { white: [], black: [] }
 
-    self.messages = ["It's on!"]
+    self.messages = ["BEGIN: It's on!"]
   end
 
   def board_square(coord_string)
@@ -249,10 +247,28 @@ class ChessBoard
           :illegal
         end
       elsif from_square.class == Pawn
-        if player == :white && from_row == 6 && to_row == 7
-          :promote
-        elsif player == :black && from_row == 1 && to_row == 0
-          :promote
+        if ( player == :white && from_row == 6 && to_row == 7 ) ||
+          ( player == :black && from_row == 1 && to_row == 0 )
+          if m = coord_string.match(/(\w)(\d)(R|N|B|Q)/)
+            case m[3]
+            when 'R'
+              :promote_rook
+            when 'N'
+              :promote_knight
+            when 'K'
+              :promote_knight
+            when 'B'
+              :promote_bishop
+            when 'Q'
+              :promote_queen
+            else
+              messages << "ERROR: Not a valid promotion piece."
+              :illegal
+            end
+          else
+            messages << "ERROR: Must choose a promotion piece."
+            :illegal
+          end
         else
           :normal
         end
@@ -264,8 +280,8 @@ class ChessBoard
     elsif coord_string == "0-0-0"
       :castle_qs
     else
-      :illegal
       messages << "ERROR: Bad move input!"
+      :illegal
     end
   end
 
@@ -305,8 +321,8 @@ class ChessBoard
         normal_move(player, coord_string, from_row, from_col, to_row, to_col)
       elsif move_type == :castle_ks || move_type == :castle_qs
         castle_move(player,coord_string)
-      elsif move_type == :promote_move
-
+      elsif move_type.to_s[0..6] == "promote"
+        promote_move(player,to_col,move_type)
       end
       unselect
       true
@@ -338,7 +354,7 @@ class ChessBoard
     messages << "MOVE: #{player.capitalize} #{from_piece.class} #{move_phrase}"
   end
 
-  def castle_move(player, coord_string)
+  def castle_move( player, coord_string )
     if coord_string == "0-0"
       to_col = 6
       rook_from_col = 7
@@ -374,7 +390,28 @@ class ChessBoard
     messages << "MOVE: #{player.capitalize} castled #{side}side"
   end
 
-  def promote_move
+  def promote_move(player,col,move_type)
+    if player == :white
+      from_row = 6
+      to_row = 7
+    else
+      from_row = 1
+      to_row = 0
+    end
 
+    if move_type == :promote_rook
+      new_piece = Rook.new(player,to_row,col)
+    elsif move_type == :promote_knight
+      new_piece = Knight.new(player,to_row,col)
+    elsif move_type == :promote_bishop
+      new_piece = Bishop.new(player,to_row,col)
+    elsif move_type == :promote_queen
+      new_piece = Queen.new(player,to_row,col)
+    end
+
+    board[from_row][col] = nil
+    board[to_row][col] = new_piece
+
+    messages << "MOVE: #{player.capitalize} promoted Pawn to #{new_piece.class} at #{indices_to_chess_coords(to_row,col)}"
   end
 end

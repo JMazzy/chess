@@ -22,26 +22,40 @@ class Pawn < ChessPiece
         if col_move == 0 && (1..2).include?(row_move)
           true
         else
-          puts "Illegal move for pawn"
+          # illegal move for pawn
           false
         end
       elsif col_move == 0 && row_move == 1
         true
       else
-        puts "Can only move two spaces on the first move"
+        # illegal move for pawn
         false
       end
     elsif move_type == :capture
       if col_move.abs == 1 && row_move == 1
         true
       else
-        puts "Illegal move for pawn"
+        # illegal move for pawn capture
         false
       end
     elsif move_type == :passant
-      #NEED TO IMPLIMENT EN PASSANT MOVES
+      #NEED TO IMPLEMENT EN PASSANT MOVES
+    elsif move_type.to_s[0..6] == "promote"
+      if col_move == 0 && row_move == 1
+        if team == :black && new_row == 0
+          true
+        elsif team == :white && new_row == 7
+          true
+        else
+          # it isn't really a promotion and should have failed already...
+          false
+        end
+      else
+        # illegal move for pawn
+        false
+      end
     else
-      puts "Bad move type"
+      # the move type isn't accepted
       false
     end
   end

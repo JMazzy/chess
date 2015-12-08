@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require 'colorize'
+
 require_relative './chess_game.rb'
 
 class Chess
@@ -17,7 +19,6 @@ class Chess
     if select_string.match(/\w\d/) || select_string[0..2] == "0-0"
       return select_string
     else
-      puts "Selection must be in the form 'a1'"
       ask_selection
     end
   end
@@ -28,7 +29,6 @@ class Chess
     if move_string.match(/\w\d/)
       return move_string
     else
-      puts "Move must be in the form 'a1'"
       ask_move
     end
   end
@@ -114,9 +114,6 @@ class Chess
 
     # print out the most recent messages
     puts board.messages.last
-
-    #return the generated string
-    board_string
   end
 
   def game_loop
