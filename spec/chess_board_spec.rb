@@ -97,10 +97,29 @@ describe "pieces should move correctly" do
     end
 
     it "can take another pawn en passant" do
-      #NEED A TEST FOR EN PASSANT
+      pending #NEEDS TO BE IMPLEMENTED
+      test_board = ChessBoard.new(:blank)
+
+      expect(test_board.set_piece(:white, "a2", Pawn)).to eq true
+      expect(test_board.set_piece(:black, "b4", Pawn)).to eq true
+
+      # White moves forward, passing by black pawn
+      expect(test_board.select(:white, "a2")).to eq true
+      expect(test_board.move(:white, "a4")).to eq true
+
+      # Black is able to capture en passant
+      expect(test_board.select(:black, "b4")).to eq true
+      expect(test_board.move(:black, "a3")).to eq true
+
+      # White pawn is no longer there
+      expect(test_board.board_square("a4").class).to eq NilClass
+
+      # Black pawn is on the square white pawn passed through
+      expect(test_board.board_square("a3").class).to eq Pawn
+      expect(test_board.board_square("a3").team).to eq :black
     end
 
-    it "promotion upon reaching far rank" do
+    it "is promoted upon reaching far rank" do
       test_board = ChessBoard.new(:blank)
 
       expect(test_board.set_piece(:white, "b7", Pawn)).to eq true
@@ -237,17 +256,75 @@ describe "pieces should move correctly" do
     end
   end
 
-  describe "knight should move correctly" do
+  describe "knight" do
     it "moves to the correct places" do
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "b1", Knight)).to eq true
+
+      expect(test_board.select(:white, "b1")). to eq true
+      expect(test_board.move(:white, "c3")). to eq true
+      expect(test_board.select(:white, "c3")). to eq true
+      expect(test_board.move(:white, "b5")). to eq true
+      expect(test_board.select(:white, "b5")). to eq true
+      expect(test_board.move(:white, "d4")). to eq true
+      expect(test_board.select(:white, "d4")). to eq true
+      expect(test_board.move(:white, "e2")). to eq true
+
+      expect(test_board.board_square("e2").class).to eq Knight
     end
 
     it "does not move elsewhere" do
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "c3", Knight)).to eq true
+
+      # Can't move one square ahead
+      expect(test_board.select(:white, "c3")). to eq true
+      expect(test_board.move(:white, "c4")). to eq false
+
+      # Can't move to an arbitrary location
+      expect(test_board.select(:white, "c3")). to eq true
+      expect(test_board.move(:white, "d8")). to eq false
+
+      # Can't move two spaces ahead
+      expect(test_board.select(:white, "c3")). to eq true
+      expect(test_board.move(:white, "e3")). to eq false
+
+      # Should still be in starting location
+      expect(test_board.board_square("c3").class).to eq Knight
     end
 
     it "captures a piece" do
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "b1", Knight)).to eq true
+      expect(test_board.set_piece(:black, "c3", Pawn)).to eq true
+
+      expect(test_board.select(:white, "b1")). to eq true
+      expect(test_board.move(:white, "c3")). to eq true
+
+      expect(test_board.board_square("c3").class).to eq Knight
+      expect(test_board.captured_pieces[:black][0].class).to eq Pawn
     end
 
     it "can jump over a piece" do
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "b1", Knight)).to eq true
+      expect(test_board.set_piece(:white, "b2", Pawn)).to eq true
+
+      # jump over the pawn
+      expect(test_board.select(:white, "b1")). to eq true
+      expect(test_board.move(:white, "c3")). to eq true
+
+      # jump should be successful
+      expect(test_board.board_square("c3").class).to eq Knight
+      expect(test_board.board_square("b2").class).to eq Pawn
     end
   end
 
