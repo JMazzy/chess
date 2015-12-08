@@ -22,7 +22,7 @@ describe "selection should work" do
 end
 
 describe "pieces should move correctly" do
-  describe "pawn should move correctly" do
+  describe "pawn" do
     it "moves one space forward" do
       test_board = ChessBoard.new(:standard)
       expect(test_board.board_square("d2").class).to eq Pawn
@@ -147,7 +147,7 @@ describe "pieces should move correctly" do
     end
   end
 
-  describe "rook should move correctly" do
+  describe "rook" do
     it "moves up/down/left/right" do
       test_board = ChessBoard.new(:blank)
 

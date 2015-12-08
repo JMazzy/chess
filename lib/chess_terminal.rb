@@ -23,7 +23,7 @@ class Chess
   end
 
   def ask_move
-    print "Move #{game.chess_board.board[game.chess_board.selected[0]][game.chess_board.selected[1]].class} to: "
+    print "Move #{game.board.board[game.board.selected[0]][game.board.selected[1]].class} to: "
     move_string = gets.chomp.downcase
     if move_string.match(/\w\d/)
       return move_string
@@ -52,14 +52,77 @@ class Chess
     game.update
   end
 
-  def draw
-    print game.chess_board.board_state
+  #
+  def draw(board)
+
+    board_print = board.board.reverse
+
+    board_string = "  a  b  c  d  e  f  g  h \n"
+
+    board_print.each_index do |row|
+      board_string << ( 8 - row ).to_s
+      board_print[row].each_index do |col|
+        if col % 2 == 0
+          if row % 2 == 0
+            tile_color = :light_blue
+          else
+            tile_color = :blue
+          end
+        else
+          if row % 2 == 0
+            tile_color = :blue
+          else
+            tile_color = :light_blue
+          end
+        end
+
+        square = board_print[row][col]
+        if square
+          piece_color = square.team
+
+          if game.board.selected == [ 7 - row, col ]
+            tile_color = :yellow
+          end
+
+          if square.class == Pawn
+            piece_string = " \u265F "
+          elsif square.class == King
+            piece_string = " \u265A "
+          elsif square.class == Queen
+            piece_string = " \u265B "
+          elsif square.class == Bishop
+            piece_string = " \u265D "
+          elsif square.class == Knight
+            piece_string = " \u265E "
+          elsif square.class == Rook
+            piece_string = " \u265C "
+          end
+        else
+          piece_color = :white
+          piece_string = "   "
+        end
+
+        board_string << piece_string.encode('utf-8').colorize( color: piece_color, background: tile_color )
+      end
+      board_string << ( 8 - row ).to_s
+      board_string << "\n"
+    end
+    board_string << "  a  b  c  d  e  f  g  h  "
+
+    # print out the string
+    puts board_string
+
+    # print out the most recent messages
+    puts board.messages.last
+
+    #return the generated string
+    board_string
   end
 
   def game_loop
     loop do
       update
-      draw
+      draw(game.board)
     end
   end
 end
