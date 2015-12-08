@@ -328,17 +328,60 @@ describe "pieces should move correctly" do
     end
   end
 
-  describe "bishop should move correctly" do
+  describe "bishop" do
     it "moves diagonally" do
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "f1", Bishop)).to eq true
+
+      expect(test_board.select(:white, "f1")). to eq true
+      expect(test_board.move(:white, "a6")). to eq true
+      expect(test_board.select(:white, "a6")). to eq true
+      expect(test_board.move(:white, "c8")). to eq true
+      expect(test_board.select(:white, "c8")). to eq true
+      expect(test_board.move(:white, "h3")). to eq true
+      expect(test_board.select(:white, "h3")). to eq true
+      expect(test_board.move(:white, "f1")). to eq true
     end
 
     it "does not move up/down/left/right" do
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "f1", Bishop)).to eq true
+
+      expect(test_board.select(:white, "f1")). to eq true
+      expect(test_board.move(:white, "f8")). to eq false
+      expect(test_board.select(:white, "f1")). to eq true
+      expect(test_board.move(:white, "h1")). to eq false
     end
 
     it "captures a piece" do
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "f1", Bishop)).to eq true
+      expect(test_board.set_piece(:black, "a6", Pawn)).to eq true
+
+      expect(test_board.select(:white, "f1")). to eq true
+      expect(test_board.move(:white, "a6")). to eq true
+
+      expect(test_board.board_square("a6").class).to eq Bishop
+      expect(test_board.captured_pieces[:black][0].class).to eq Pawn
     end
 
     it "does not move through other pieces" do
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "f1", Bishop)).to eq true
+      expect(test_board.set_piece(:black, "b5", Pawn)).to eq true
+
+      expect(test_board.select(:white, "f1")). to eq true
+      expect(test_board.move(:white, "a6")). to eq false
+      
+      expect(test_board.board_square("f1").class).to eq Bishop
     end
   end
 
