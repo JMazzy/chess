@@ -380,33 +380,93 @@ describe "pieces should move correctly" do
 
       expect(test_board.select(:white, "f1")). to eq true
       expect(test_board.move(:white, "a6")). to eq false
-      
+
       expect(test_board.board_square("f1").class).to eq Bishop
     end
   end
 
-  describe "queen should move correctly" do
+  describe "queen" do
     it "moves diagonally" do
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "d1", Queen)).to eq true
+
+      expect(test_board.select(:white, "d1")). to eq true
+      expect(test_board.move(:white, "a4")). to eq true
+      expect(test_board.select(:white, "a4")). to eq true
+      expect(test_board.move(:white, "e8")). to eq true
+      expect(test_board.select(:white, "e8")). to eq true
+      expect(test_board.move(:white, "h5")). to eq true
+      expect(test_board.select(:white, "h5")). to eq true
+      expect(test_board.move(:white, "d1")). to eq true
+
+      expect(test_board.board_square("d1").class).to eq Queen
     end
 
     it "moves up/down/left/right" do
+      test_board = ChessBoard.new(:blank)
+
+      # Place the piece
+      expect(test_board.set_piece(:white, "d1", Queen)).to eq true
+
+      # Move up
+      expect(test_board.select(:white, "d1")).to eq true
+      expect(test_board.move(:white, "a4")).to eq true
+      expect(test_board.board_square("a4").class).to eq Queen
+
+      # Move right
+      expect(test_board.select(:white, "a4")).to eq true
+      expect(test_board.move(:white, "g4")).to eq true
+      expect(test_board.board_square("g4").class).to eq Queen
+
+      # Move down
+      expect(test_board.select(:white, "g4")).to eq true
+      expect(test_board.move(:white, "g2")).to eq true
+      expect(test_board.board_square("g2").class).to eq Queen
+
+      # Move left
+      expect(test_board.select(:white, "g2")).to eq true
+      expect(test_board.move(:white, "b2")).to eq true
+      expect(test_board.board_square("b2").class).to eq Queen
     end
 
     it "captures a piece" do
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "d1", Queen)).to eq true
+      expect(test_board.set_piece(:black, "a4", Pawn)).to eq true
+
+      expect(test_board.select(:white, "d1")). to eq true
+      expect(test_board.move(:white, "a4")). to eq true
+
+      expect(test_board.board_square("a4").class).to eq Queen
+      expect(test_board.captured_pieces[:black][0].class).to eq Pawn
     end
 
     it "does not move through other pieces" do
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "f1", Queen)).to eq true
+      expect(test_board.set_piece(:black, "b5", Pawn)).to eq true
+
+      expect(test_board.select(:white, "f1")). to eq true
+      expect(test_board.move(:white, "a6")). to eq false
+
+      expect(test_board.board_square("f1").class).to eq Queen
     end
   end
 
   describe "king should move correctly" do
-    it "moves diagonally one space only" do
+    it "moves diagonally one space" do
     end
 
     it "cannot move more than one space diagonally" do
     end
 
-    it "moves up/down/left/right one space only" do
+    it "moves up/down/left/right one space" do
     end
 
     it "cannot move more than one space" do
