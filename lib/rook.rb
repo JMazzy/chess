@@ -16,4 +16,28 @@ class Rook < ChessPiece
       false
     end
   end
+
+  def controlled_squares
+    up = []
+    down = []
+    left = []
+    right = []
+    (row+1).upto(7) do |num|
+      up << [num,col]
+    end
+
+    (row-1).downto(0) do |num|
+      down << [num,col]
+    end
+
+    (col+1).upto(7) do |num|
+      right << [row,num]
+    end
+
+    (col-1).downto(0) do |num|
+      left << [row,num]
+    end
+
+    [up,down,left,right]
+  end
 end

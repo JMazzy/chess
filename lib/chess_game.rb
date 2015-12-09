@@ -44,6 +44,8 @@ class ChessGame
       self.selecting = true
       self.moving = false
     end
+
+    board.piece_control
   end
 
   def switch_player

@@ -16,4 +16,40 @@ class Bishop < ChessPiece
       false
     end
   end
+
+  def controlled_squares
+    up_right = []
+    down_left = []
+    up_left = []
+    down_right = []
+    (row+1).upto(7) do |row_num|
+      (col+1).upto(7) do |col_num|
+        if move_ok?(row_num,col_num)
+          up_right << [row_num,col_num]
+        end
+      end
+
+      (col-1).downto(0) do |col_num|
+        if move_ok?(row_num,col_num)
+          up_left << [row_num,col_num]
+        end
+      end
+    end
+
+    (row-1).downto(0) do |row_num|
+      (col+1).upto(7) do |col_num|
+        if move_ok?(row_num,col_num)
+          down_right << [row_num,col_num]
+        end
+      end
+
+      (col-1).downto(0) do |col_num|
+        if move_ok?(row_num,col_num)
+          down_left << [row_num,col_num]
+        end
+      end
+    end
+
+    [up_right,down_right,down_left,up_left]
+  end
 end

@@ -24,4 +24,26 @@ class King < ChessPiece
       false
     end
   end
+
+  def controlled_squares
+    up_right = []
+    down_left = []
+    up_left = []
+    down_right = []
+    up = []
+    down = []
+    left = []
+    right = []
+
+    up_right << [row+1,col+1]
+    up_left << [row+1,col-1]
+    down_right << [row-1,col+1]
+    down_left << [row-1,col-1]
+    up << [row+1,col]
+    down << [row-1,col]
+    right << [row,col+1]
+    left << [row,col-1]
+
+    [up_right,down_right,down_left,up_left,up,down,left,right]
+  end
 end

@@ -186,6 +186,26 @@ class ChessBoard
     true
   end
 
+  # iterates through each square on the board, populating each piece's list of controlled squares
+  def piece_control
+    board.each do |row|
+      row.each do |square|
+        if square
+          square.pieces_in_range = []
+          control = square.controlled_squares
+          control.each do |direction|
+            direction.each do |space|
+              if piece = board[space[0]][space[1]]
+                square.pieces_in_range << "#{piece.team.to_s[0].upcase}#{piece.class.to_s[0]}#{indices_to_chess_coords(space[0],space[1])}"
+                break
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+
   def in_bounds?(row,col)
     if row >= 0 && row < 8 && col >= 0 && col < 8
       true
