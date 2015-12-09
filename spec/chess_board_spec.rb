@@ -97,7 +97,6 @@ describe "pieces should move correctly" do
     end
 
     it "can take another pawn en passant" do
-      pending #NEEDS TO BE IMPLEMENTED
       test_board = ChessBoard.new(:blank)
 
       expect(test_board.set_piece(:white, "a2", Pawn)).to eq true
@@ -459,7 +458,7 @@ describe "pieces should move correctly" do
     end
   end
 
-  describe "king should move correctly" do
+  describe "king" do
     it "moves diagonally one space" do
       test_board = ChessBoard.new(:blank)
 
@@ -583,21 +582,53 @@ end
 describe "pieces should sense nearby pieces" do
   describe "pieces should be aware of pieces in taking range" do
     it "pawn should know about other pieces in range" do
+      pending "needs to be implemented"
+      # Any pieces on the squares diagonally forward (positive for white and negative for black)
+
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "f2", Pawn)).to eq true
+      expect(test_board.set_piece(:black, "g3", Pawn)).to eq true
+
+      expect(test_board.board_square("f2").pieces_in_range.include?("BPg3")).to eq true
     end
 
     it "rook should know about other pieces in range" do
+      # First piece along any
+
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "a1", Rook)).to eq true
     end
 
     it "knight should know about other pieces in range" do
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "b1", Knight)).to eq true
     end
 
     it "bishop should know about other pieces in range" do
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "c1", Bishop)).to eq true
     end
 
     it "queen should know about other pieces in range" do
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "d1", Queen)).to eq true
     end
 
     it "king should know about other pieces in range" do
+      test_board = ChessBoard.new(:blank)
+
+      # Place the pieces
+      expect(test_board.set_piece(:white, "e1", King)).to eq true
     end
   end
 
