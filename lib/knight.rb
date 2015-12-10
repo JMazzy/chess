@@ -16,4 +16,15 @@ class Knight < ChessPiece
       false
     end
   end
+
+  def controlled_squares
+    [ [ [row+2,col+1] ],
+      [ [row+1,col+2] ],
+      [ [row+2,col-1] ],
+      [ [row-1,col+2] ],
+      [ [row-2,col+1] ],
+      [ [row+1,col-2] ],
+      [ [row-2,col-1] ],
+      [ [row-1,col-2] ] ]
+  end
 end

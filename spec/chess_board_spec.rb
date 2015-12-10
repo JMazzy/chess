@@ -621,7 +621,26 @@ describe "pieces should sense nearby pieces" do
       test_board = ChessBoard.new(:blank)
 
       # Place the pieces
-      expect(test_board.set_piece(:white, "b1", Knight)).to eq true
+      expect(test_board.set_piece(:white, "d4", Knight)).to eq true
+      expect(test_board.set_piece(:black, "e6", Pawn)).to eq true
+      expect(test_board.set_piece(:black, "f5", Pawn)).to eq true
+      expect(test_board.set_piece(:black, "f3", Pawn)).to eq true
+      expect(test_board.set_piece(:black, "e2", Pawn)).to eq true
+      expect(test_board.set_piece(:black, "c2", Pawn)).to eq true
+      expect(test_board.set_piece(:black, "b3", Pawn)).to eq true
+      expect(test_board.set_piece(:black, "b5", Pawn)).to eq true
+      expect(test_board.set_piece(:black, "c6", Pawn)).to eq true
+
+      test_board.piece_control
+
+      expect(test_board.board_square("d4").pieces_in_range.include?("BPe6")).to eq true
+      expect(test_board.board_square("d4").pieces_in_range.include?("BPf5")).to eq true
+      expect(test_board.board_square("d4").pieces_in_range.include?("BPf3")).to eq true
+      expect(test_board.board_square("d4").pieces_in_range.include?("BPe2")).to eq true
+      expect(test_board.board_square("d4").pieces_in_range.include?("BPc2")).to eq true
+      expect(test_board.board_square("d4").pieces_in_range.include?("BPb3")).to eq true
+      expect(test_board.board_square("d4").pieces_in_range.include?("BPb5")).to eq true
+      expect(test_board.board_square("d4").pieces_in_range.include?("BPc6")).to eq true
     end
 
     it "bishop should know about other pieces in range" do
