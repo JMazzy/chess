@@ -16,7 +16,7 @@ require_relative './rook.rb'
 #   a b c d e f g h
 
 class ChessBoard
-  # game states are :playing, :check, :checkmate
+  # game states are :playing, :check, :white_win, :black_win, :draw
 
   attr_accessor :board,
                 :captured_pieces,
@@ -25,18 +25,18 @@ class ChessBoard
                 :messages
 
   def empty_board
-    self.board = [[nil, nil, nil, nil, nil, nil, nil, nil],
-                  [nil, nil, nil, nil, nil, nil, nil, nil],
-                  [nil, nil, nil, nil, nil, nil, nil, nil],
-                  [nil, nil, nil, nil, nil, nil, nil, nil],
-                  [nil, nil, nil, nil, nil, nil, nil, nil],
-                  [nil, nil, nil, nil, nil, nil, nil, nil],
-                  [nil, nil, nil, nil, nil, nil, nil, nil],
-                  [nil, nil, nil, nil, nil, nil, nil, nil]]
+    [ [nil, nil, nil, nil, nil, nil, nil, nil],
+      [nil, nil, nil, nil, nil, nil, nil, nil],
+      [nil, nil, nil, nil, nil, nil, nil, nil],
+      [nil, nil, nil, nil, nil, nil, nil, nil],
+      [nil, nil, nil, nil, nil, nil, nil, nil],
+      [nil, nil, nil, nil, nil, nil, nil, nil],
+      [nil, nil, nil, nil, nil, nil, nil, nil],
+      [nil, nil, nil, nil, nil, nil, nil, nil]  ]
   end
 
   def standard_board
-    empty_board
+    board = empty_board
 
     pieces = [
       King.new(:white, 0, 4), Queen.new(:white, 0, 3), King.new(:black, 7, 4), Queen.new(:black, 7, 3),
@@ -56,13 +56,15 @@ class ChessBoard
     pieces.each do |piece|
       board[piece.row][piece.col] = piece
     end
+
+    return board
   end
 
   def initialize(board_type = :standard)
     if board_type == 'standard' || board_type == :standard
-      standard_board
+      self.board = standard_board
     elsif board_type == 'blank' || board_type == :blank
-      empty_board
+      self.board = empty_board
     end
 
     self.selected = nil
@@ -95,43 +97,55 @@ class ChessBoard
     end
   end
 
-  def select_ok?(player, coord_string)
-    if coords = chess_coords_to_indices(coord_string)
-      row = coords[0]
-      col = coords[1]
-      if in_bounds?(row,col)
-        if board[row][col]
-          # Make sure the piece belongs to the current player
-          if board[row][col].team == player
-            messages << "SELECTION: #{player.to_s.capitalize} selected #{board[row][col].class} at #{indices_to_chess_coords(row, col)}"
-            true
-          else
-            messages << "ERROR: Cannot select opponent's piece!"
-            false
-          end
+  def piece_exists?(row,col)
+    if in_bounds?(row,col)
+      !!board[row][col]
+    else
+      false
+    end
+  end
+
+  def select_ok?(player, row, col)
+    if in_bounds?(row,col)
+      if piece_exists?(row,col)
+        # Make sure the piece belongs to the current player
+        if board[row][col].team == player
+          messages << "SELECTION: #{player.to_s.capitalize} selected #{board[row][col].class} at #{indices_to_chess_coords(row, col)}"
+          true
         else
-          messages << 'ERROR: No piece on that square!'
+          messages << "ERROR: Cannot select opponent's piece!"
           false
         end
       else
-        messages << 'ERROR: Selection is off the board!'
+        messages << 'ERROR: No piece on that square!'
         false
       end
     else
-      messages << 'ERROR: Invalid selection!'
+      messages << 'ERROR: Selection is off the board!'
       false
     end
   end
 
   def select(player, coord_string)
-    if select_ok?(player, coord_string)
-      unselect
-      coords = chess_coords_to_indices(coord_string)
-      self.selected = coords
-      true
+    if coords = chess_coords_to_indices(coord_string)
+      row = coords[0]
+      col = coords[1]
+      if select_ok?(player, row, col)
+        unselect
+        coords = chess_coords_to_indices(coord_string)
+        self.selected = coords
+        true
+      else
+        false
+      end
+    elsif coord_string == "resign"
+      resign(player)
+      false
     else
+      messages << 'ERROR: Invalid selection!'
       false
     end
+
   end
 
   def unselect
@@ -162,32 +176,43 @@ class ChessBoard
   end
 
   def path_clear?(from_row, from_col, to_row, to_col)
-    # Check for pieces on intervening squares
-    # The single step corresponding to the move (magnitude one, same sign)
-    row_step = to_row <=> from_row
-    col_step = to_col <=> from_col
+    # The path is always clear for knights
+    if board[from_row][from_col].class == Knight
+      return true
+    else
+      # Check for pieces on intervening squares
+      # The single step corresponding to the move (-1, 0, 1)
+      row_step = to_row <=> from_row
+      col_step = to_col <=> from_col
 
-    temp_row = from_row + row_step
-    temp_col = from_col + col_step
+      temp_row = from_row + row_step
+      temp_col = from_col + col_step
 
-    until temp_row == to_row && temp_col == to_col
-      if (0..7).include?(temp_row) && (0..7).include?(temp_col)
+      until temp_row == to_row && temp_col == to_col
+        if (0..7).include?(temp_row) && (0..7).include?(temp_col)
 
-        # if a piece is there
-        return false if board[temp_row][temp_col]
-
-        temp_row += row_step
-        temp_col += col_step
-      else
-        return false
+          # if a piece is there
+          if board[temp_row][temp_col]
+            messages << "PATH_CLEAR_ERROR: Path blocked!"
+            return false
+          else
+            temp_row += row_step
+            temp_col += col_step
+          end
+        else
+          messages << "PATH_CLEAR_ERROR: Path goes out of bounds!"
+          return false
+        end
       end
-    end
 
-    true
+      # If no piece is encountered along the move path, return true
+      return true
+    end
   end
 
   # iterates through each square on the board, populating each piece's list of controlled squares
   def piece_control
+    self.game_state = :playing
     board.each do |row|
       row.each do |square|
         if square
@@ -195,9 +220,22 @@ class ChessBoard
           control = square.controlled_squares
           control.each do |direction|
             direction.each do |space|
-              if piece = board[space[0]][space[1]]
-                square.pieces_in_range << "#{piece.team.to_s[0].upcase}#{piece.class.to_s[0]}#{indices_to_chess_coords(space[0],space[1])}"
-                break
+              if space && space[0] && space[1] && in_bounds?(space[0],space[1])
+                if piece = board[space[0]][space[1]]
+                  team_marker = piece.team.to_s[0].upcase
+                  if piece.class == Knight
+                    piece_marker = "N"
+                  else
+                    piece_marker = piece.class.to_s[0]
+                  end
+
+                  if piece.class == King
+                    self.game_state = :check
+                  end
+                  square_coordinates = indices_to_chess_coords(space[0],space[1])
+                  square.pieces_in_range << "#{team_marker}#{piece_marker}#{square_coordinates}"
+                  break
+                end
               end
             end
           end
@@ -214,106 +252,107 @@ class ChessBoard
     end
   end
 
-  def castle_ok?(move_type, to_row)
-    if move_type == :castle_ks
-      rook = board[to_row][7]
-    elsif move_type == :castle_qs
-      rook = board[to_row][0]
-    end
-
-    if rook.class == Rook && rook.first_move
-      return true
+  def castle_type(player, coord_string)
+    if player == :white
+      row = 0
     else
-      return false
+      row = 7
     end
-  end
 
-  def move_ok?(from_row, from_col, to_row, to_col, move_type = :normal)
-    # Make sure the move is in the bounds of the board
-    if in_bounds?(to_row,to_col)
-
-      from_piece = board[from_row][from_col]
-
-      # Knights (only) are allowed to jump over other pieces
-      if from_piece.class == Knight || move_type.to_s[0..5] == 'castle' || path_clear?(from_row, from_col, to_row, to_col)
-
-        # If the move is legal for the moving piece
-        if from_piece.move_ok?(to_row, to_col, move_type)
-
-          if move_type.to_s[0..5] == 'castle'
-            return castle_ok?(move_type, to_row)
-          else
-            return true
-          end
-
-        else # If it is an illegal move
-          messages << 'ERROR: Illegal move for piece.'
-          return false
-        end
+    if coord_string == '0-0'
+      king = board[row][4]
+      rook = board[row][7]
+      if king.first_move && rook.first_move
+        :castle_ks
       else
-        messages << "ERROR: That piece can't jump over other pieces."
-        return false
+        :illegal
+      end
+    elsif coord_string == '0-0-0'
+      king = board[row][4]
+      rook = board[row][0]
+      if king.first_move && rook.first_move
+        :castle_qs
+      else
+        :illegal
       end
     else
-      messages << 'ERROR: That move is out of bounds!'
-      return false
+      :illegal
     end
   end
 
   def find_move_type(player, coord_string)
     from_row = selected[0]
     from_col = selected[1]
-    from_square = board[from_row][from_col]
+    from_piece = board[from_row][from_col]
 
     if coords = chess_coords_to_indices(coord_string)
       to_row = coords[0]
       to_col = coords[1]
       to_square = board[to_row][to_col]
 
-      if to_square
-        if to_square.team != player
-          :capture
-        else
-          messages << 'ERROR: You cannot capture your own piece!'
-          :illegal
-        end
-      elsif from_square.class == Pawn
-        if ((player == :white && from_row == 4) ||
-          (player == :black && from_row == 3)) &&
-           board[from_row][to_col] && board[from_row][to_col].passantable
-          :passant
-        elsif (player == :white && from_row == 6 && to_row == 7) ||
-              (player == :black && from_row == 1 && to_row == 0)
-          if m = coord_string.match(/(\w)(\d)(R|N|B|Q)/)
-            case m[3]
-            when 'R'
-              :promote_rook
-            when 'N'
-              :promote_knight
-            when 'K'
-              :promote_knight
-            when 'B'
-              :promote_bishop
-            when 'Q'
-              :promote_queen
+      # Make sure the move is in the bounds of the board
+      if in_bounds?(to_row, to_col)
+
+        # If the path is clear for that piece to move
+        if path_clear?(from_row, from_col, to_row, to_col)
+
+          # if square is occupied (not nil)
+          if piece_exists?(to_row,to_col)
+            if to_square.team != player
+              :capture
             else
-              messages << 'ERROR: Not a valid promotion piece.'
+              messages << 'ERROR: You cannot capture your own piece!'
               :illegal
             end
+          elsif from_piece.class == Pawn
+            if ((player == :white && from_row == 4) ||
+              (player == :black && from_row == 3)) &&
+               board[from_row][to_col] && board[from_row][to_col].passantable
+              :passant
+            elsif (player == :white && from_row == 6 && to_row == 7) ||
+                  (player == :black && from_row == 1 && to_row == 0)
+              if m = coord_string.match(/(\w)(\d)(R|N|B|Q)/)
+                case m[3]
+                when 'R'
+                  :promote_rook
+                when 'N'
+                  :promote_knight
+                when 'K'
+                  :promote_knight
+                when 'B'
+                  :promote_bishop
+                when 'Q'
+                  :promote_queen
+                else
+                  messages << 'ERROR: Not a valid promotion piece.'
+                  :illegal
+                end
+              else
+                messages << 'ERROR: Must choose a promotion piece.'
+                :illegal
+              end
+            else
+              # Not passant or promotion
+              :normal
+            end
           else
-            messages << 'ERROR: Must choose a promotion piece.'
-            :illegal
+            # Not a pawn or a capture
+            :normal
           end
         else
-          :normal
+          messages << "ERROR: That piece can't jump over other pieces."
+          :illegal
         end
       else
-        :normal
+        messages << 'ERROR: That move is out of bounds!'
+        :illegal
       end
-    elsif coord_string == '0-0'
-      :castle_ks
-    elsif coord_string == '0-0-0'
-      :castle_qs
+    elsif coord_string.to_s[0..2] == '0-0'
+      # Castling
+      castle_type(player, coord_string)
+    elsif coord_string == "resign"
+      resign(player)
+      false
     else
       messages << 'ERROR: Bad move input!'
       :illegal
@@ -323,12 +362,13 @@ class ChessBoard
   def move(player, coord_string)
     from_row = selected[0]
     from_col = selected[1]
+    from_piece = board[from_row][from_col]
 
     move_type = find_move_type(player, coord_string)
 
-    false if move_type == :illegal
-
-    if move_type.to_s[0..5] == 'castle'
+    if move_type == :illegal
+      return false
+    elsif move_type.to_s[0..5] == 'castle'
       if move_type == :castle_ks
         to_col = 6
       elsif move_type == :castle_qs
@@ -346,14 +386,14 @@ class ChessBoard
       to_col = coords[1]
     end
 
-    if move_ok?(from_row, from_col, to_row, to_col, move_type)
+    if from_piece.move_ok?(to_row, to_col, move_type)
       # convert the coordinates to array indices
       if move_type == :normal
         normal_move(player, coord_string, from_row, from_col, to_row, to_col)
       elsif move_type == :capture
         normal_move(player, coord_string, from_row, from_col, to_row, to_col)
       elsif move_type == :passant
-        passant_move(player, coord_string, from_row, from_col, to_row, to_col)
+        passant_move(player, from_row, from_col, to_row, to_col)
       elsif move_type == :castle_ks || move_type == :castle_qs
         castle_move(player, coord_string)
       elsif move_type.to_s[0..6] == 'promote'
@@ -362,6 +402,8 @@ class ChessBoard
       unselect
       true
     else
+      # If it is an illegal move
+      messages << 'ERROR: Illegal move for piece.'
       false
     end
   end
@@ -450,7 +492,7 @@ class ChessBoard
     messages << "MOVE: #{player.capitalize} promoted Pawn to #{new_piece.class} at #{indices_to_chess_coords(to_row, col)}"
   end
 
-  def passant_move(player, _coord_string, from_row, from_col, to_row, to_col)
+  def passant_move(player, from_row, from_col, to_row, to_col)
     if player == :white
       from_row = 4
       to_row = 5
@@ -458,6 +500,7 @@ class ChessBoard
       from_row = 3
       to_row = 2
     end
+
     # Piece which is moving
     from_piece = board[from_row][from_col].dup
     from_piece.move(to_row, to_col)
@@ -472,5 +515,25 @@ class ChessBoard
     board[from_row][to_col] = nil
 
     messages << "MOVE: #{player.capitalize} captured Pawn en passant"
+  end
+
+  def resign(player)
+    messages << "RESIGNATION: The player with the #{player.capitalize} pieces has resigned!"
+
+    if player == :white
+      declare_victory(:black)
+    else
+      declare_victory(:white)
+    end
+  end
+
+  def declare_victory(player)
+    self.game_state = "#{player}_win".to_sym
+    messages << "WIN: The player with the #{player.capitalize} pieces has won!"
+  end
+
+  def draw
+    self.game_state = :draw
+    messages << "DRAW: The game has ended in a draw."
   end
 end
