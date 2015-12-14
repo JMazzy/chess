@@ -55,6 +55,7 @@ describe 'game check state -' do
 
     it 'another piece moving and breaking the check should put game out of check' do
       test_game = ChessGame.new(:blank)
+      test_game.current_player = :white
 
       # Place the pieces
       expect(test_game.set_piece(:white, 'e4', King)).to eq true
@@ -64,44 +65,53 @@ describe 'game check state -' do
       # Sense piece control
       test_game.piece_control
 
-      # Pawn should detect king in range
+      # Bishop should detect king in range
       expect(test_game.board_square('c6').pieces_in_range.include?('WKe4')).to eq true
 
       # Game should be in check
       expect(test_game.game_state).to eq :check_white
 
-      # King moves out of range
+      # Rook moves between King and Bishop
       expect(test_game.select(:white, 'd3')).to eq true
       expect(test_game.move(:white, 'd5')).to eq true
+      expect(test_game.board_square('d3').class).to eq NilClass
+      expect(test_game.board_square('d5').class).to eq Rook
 
       # Sense piece control
       test_game.piece_control
+
+      # Bishop should NOT detect king in range
+      expect(test_game.board_square('c6').pieces_in_range.include?('WKe4')).to eq false
 
       # Game should be playing, not in check
       expect(test_game.game_state).to eq :playing
     end
 
     it "a king's move which puts itself in check should fail" do
-      pending "needs to be implemented"
       test_game = ChessGame.new(:blank)
       test_game.current_player = :black
 
       expect(test_game.set_piece(:black, 'c5', King)).to eq true
       expect(test_game.set_piece(:white, 'e5', Bishop)).to eq true
 
+      # Sense piece control
+      test_game.piece_control
+
+      coords = test_game.chess_coords_to_indices('d4')
+      expect(test_game.board.square_threats(coords[0],coords[1]).include?('WBe5')).to eq true
+
       # King moves into check; should fail
       expect(test_game.select(:black, 'c5')).to eq true
       expect(test_game.move(:black, 'd4')).to eq false
 
-      expect(test_game.board_square(c5).class).to eq King
-      expect(test_game.board_square(e5).class).to eq Bishop
-      expect(test_game.board_square(d4).class).to eq NilClass
+      expect(test_game.board_square('c5').class).to eq King
+      expect(test_game.board_square('e5').class).to eq Bishop
+      expect(test_game.board_square('d4').class).to eq NilClass
 
       expect(test_game.current_player).to eq :black
     end
 
     it "a move by a non-King which puts yourself in check should fail" do
-      pending "needs to be implemented"
       test_game = ChessGame.new(:blank)
       test_game.current_player = :black
 
@@ -109,13 +119,16 @@ describe 'game check state -' do
       expect(test_game.set_piece(:black, 'd4', Pawn)).to eq true
       expect(test_game.set_piece(:white, 'e3', Bishop)).to eq true
 
+      expect(test_game.board_square_threats('c5').include?('WBe3'))
+      expect(test_game.board_square_threats('d4').include?('WBe3'))
+
       # King moves into check; should fail
       expect(test_game.select(:black, 'd4')).to eq true
       expect(test_game.move(:black, 'd3')).to eq false
 
-      expect(test_game.board_square(c5).class).to eq King
-      expect(test_game.board_square(e5).class).to eq Bishop
-      expect(test_game.board_square(d4).class).to eq NilClass
+      expect(test_game.board_square("c5").class).to eq King
+      expect(test_game.board_square('e3').class).to eq Bishop
+      expect(test_game.board_square('d4').class).to eq Pawn
 
       expect(test_game.current_player).to eq :black
     end

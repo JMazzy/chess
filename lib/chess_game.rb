@@ -10,7 +10,6 @@ class ChessGame
   # game states are :playing, :check, :white_win, :black_win, :draw
 
   attr_accessor :board,
-                :captured_pieces,
                 :selected,
                 :current_player,
                 :selecting,
@@ -21,9 +20,7 @@ class ChessGame
   def initialize(board_type = :standard)
     self.board = ChessBoard.new
 
-    if board_type == 'standard' || board_type == :standard
-      self.board.fill
-    end
+    self.board.fill if board_type == 'standard' || board_type == :standard
 
     self.selected = nil
 
@@ -37,7 +34,7 @@ class ChessGame
   end
 
   def handle_selection(selection)
-    if board.select(current_player,selection)
+    if select(current_player,selection)
       # turn selecting off
       self.selecting = false
       # turn moving on
@@ -47,7 +44,7 @@ class ChessGame
 
   def handle_moving(move)
     # complete the move
-    if board.move(current_player,move)
+    if move(current_player,move)
       # if move is valid
       # moving off
       self.moving = false
@@ -71,7 +68,7 @@ class ChessGame
       self.moving = false
     end
 
-    board.piece_control
+    piece_control
   end
 
   def switch_player
@@ -88,6 +85,15 @@ class ChessGame
       col = coords[1]
 
       board.square(row,col)
+    end
+  end
+
+  def board_square_threats(coord_string)
+    if coords = chess_coords_to_indices(coord_string)
+      row = coords[0]
+      col = coords[1]
+
+      board.square_threats(row,col)
     end
   end
 
@@ -143,7 +149,6 @@ class ChessGame
       messages << 'ERROR: Invalid selection!'
       false
     end
-
   end
 
   def unselect
@@ -219,13 +224,13 @@ class ChessGame
         origin_piece.pieces_in_range = []
 
         control = origin_piece.controlled_squares
+
         # iterate through each potential direction of movement
         control.each do |direction|
           # no piece found in that direction yet
           piece_in_range = false
           # iterate through coordinates in each direction
           direction.each do |test_coords|
-
             if (  test_coords &&
                   test_coords[0] &&
                   test_coords[1] &&
@@ -233,22 +238,24 @@ class ChessGame
 
               test_row = test_coords[0]
               test_col = test_coords[1]
+              if  !board.piece_exists?(test_row,test_col) ||
+                  find_team_marker(board.piece_team(test_row,test_col)) != find_team_marker(board.piece_team(origin_piece.row,origin_piece.col))
+                threat_string = find_piece_string(origin_piece.row,origin_piece.col)
 
-              threat_string = "#{find_team_marker(origin_piece)}#{find_piece_marker(origin_piece.class)}#{indices_to_chess_coords(origin_piece.row,origin_piece.col)}"
-
-              # Add threat string to threat list
-              board.add_threat(test_row,test_col,threat_string)
+                # Add threat string to threat list
+                board.add_threat(test_row,test_col,threat_string)
+              end
 
               if board.piece_exists?(test_row,test_col) && !piece_in_range
-                test_square = board.square(test_row,test_col)
-
                 # If it is a king, put in check
-                if test_square.class == King
-                  self.game_state = "check_#{test_square.team}".to_sym
+                if board.piece_class(test_row,test_col) == King
+                  self.game_state = "check_#{board.piece_team(test_row,test_col)}".to_sym
+                else
+                  self.game_state = :playing
                 end
 
                 # The string to add to pieces in range
-                piece_string = "#{find_team_marker(test_square)}#{find_piece_marker(test_square.class)}#{indices_to_chess_coords(test_row,test_col)}"
+                piece_string = find_piece_string(test_row,test_col)
 
                 origin_piece.pieces_in_range << piece_string
 
@@ -262,6 +269,13 @@ class ChessGame
     end
   end
 
+  def find_piece_string(row,col)
+    team_marker = find_team_marker(board.piece_team(row,col))
+    piece_marker = find_piece_marker(board.piece_class(row,col))
+    coordinates = indices_to_chess_coords(row,col)
+    "#{team_marker}#{piece_marker}#{coordinates}"
+  end
+
   def find_piece_marker(piece_class)
     if piece_class == NilClass
       "0"
@@ -272,17 +286,39 @@ class ChessGame
     end
   end
 
-  def find_team_marker(piece)
-    if piece.class == NilClass
+  def find_team_marker(piece_team)
+    if piece_team == :none
       "0"
     else
-      piece.team.to_s[0].upcase
+      piece_team.to_s[0].upcase
     end
   end
 
-  # Returns true if that move
-  def safe_move?(team,from_row,from_col,to_row,to_col)
-    board.threats[to_row][to_col].empty?
+  # Returns true if that move does not result in check
+  def safe_move?( team, from_row,from_col, to_row, to_col)
+    p board.board.object_id
+    backup_board = Marshal.load(Marshal.dump(board))
+    p backup_board.board.object_id
+
+    # try the move
+    board.move_piece(from_row,from_col,to_row,to_col)
+    piece_control
+    p board.board.object_id
+    p backup_board.board.object_id
+
+    if game_state == "check_#{team}".to_sym
+      result = false
+    else
+      result = true
+    end
+
+    # switch back to the backup board
+    self.board = backup_board
+    piece_control
+    p board.board.object_id
+
+    # Return the result of this check
+    result
   end
 
   def castle_type(player, coord_string)
@@ -313,7 +349,7 @@ class ChessGame
     end
   end
 
-  def pawn_move_type(player, coord_string, from_row, from_col, to_row, to_col)
+  def pawn_move_type(player, coord_string, from_row, _from_col, to_row, to_col)
     if ((player == :white && from_row == 4) ||
       (player == :black && from_row == 3)) &&
        board.square(from_row,to_col) && board.square(from_row,to_col).passantable
@@ -347,7 +383,7 @@ class ChessGame
     end
   end
 
-  def capture_move_type(player, from_row, from_col, to_row, to_col)
+  def capture_move_type(player, _from_row, _from_col, to_row, to_col)
     to_square = board.square(to_row,to_col)
 
     if to_square.team != player
@@ -370,11 +406,11 @@ class ChessGame
       # Make sure the move is in the bounds of the board
       if board.in_bounds?(to_row, to_col)
 
-        # If the path is clear for that piece to move
+        # Make sure the path is clear for that piece to move
         if path_clear?(from_row, from_col, to_row, to_col)
 
-          # If the move does not put own king in check
-          # if safe_move?(to_row, to_col)
+          # Make sure the move does not put own king in check
+          if safe_move?(player, from_row, from_col, to_row, to_col)
             # if square is occupied (not nil)
             if board.piece_exists?(to_row,to_col)
               # parses :capture xor :illegal
@@ -386,9 +422,10 @@ class ChessGame
               # Not a capture
               :normal
             end
-          # else
-          #   messages << "ERROR: You cannot put yourself into check!"
-          # end
+          else
+            messages << "ERROR: You cannot put yourself into check!"
+            :illegal
+          end
 
         else
           messages << "ERROR: That piece can't jump over other pieces."

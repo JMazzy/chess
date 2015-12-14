@@ -16,7 +16,7 @@ class Chess
     puts "It is #{game.current_player.to_s.capitalize}'s turn."
     print "Select piece to move: "
     select_string = gets.chomp.downcase
-    if select_string.match(/\w\d/) || select_string[0..2] == "0-0"
+    if select_string.match(/\w\d/) || select_string[0..2] == "0-0" || select_string == "resign"
       return select_string
     else
       ask_selection
@@ -24,9 +24,9 @@ class Chess
   end
 
   def ask_move
-    print "Move #{game.board.board[game.board.selected[0]][game.board.selected[1]].class} to: "
+    print "Move #{game.board.piece_class(game.selected[0],game.selected[1])} to: "
     move_string = gets.chomp.downcase
-    if move_string.match(/\w\d/)
+    if move_string.match(/\w\d/) || move_string[0..2] == "0-0" || move_string == "resign"
       return move_string
     else
       ask_move
@@ -80,7 +80,7 @@ class Chess
         if square
           piece_color = square.team
 
-          if game.board.selected == [ 7 - row, col ]
+          if game.selected == [ 7 - row, col ]
             tile_color = :yellow
           end
 
@@ -113,7 +113,7 @@ class Chess
     puts board_string
 
     # print out the most recent messages
-    puts board.messages.last
+    puts game.messages.last
   end
 
   def game_loop

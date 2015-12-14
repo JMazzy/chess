@@ -107,6 +107,14 @@ class ChessBoard
     end
   end
 
+  def piece_class(row,col)
+    board[row][col].class
+  end
+
+  def piece_team(row,col)
+    board[row][col].team
+  end
+
   def in_bounds?(row,col)
     if row >= 0 && row < @num_rows && col >= 0 && col < @num_columns
       true
