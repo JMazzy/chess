@@ -1,30 +1,10 @@
 require 'rspec'
-require_relative "../lib/chess_board.rb"
+require_relative "../lib/chess_game.rb"
 
-describe "selection should work" do
-  it "disallows blank selection" do
-    test_board = ChessBoard.new(:standard)
-    expect(test_board.select(:white, "f5")).to eq false
-    expect(test_board.selected).to eq nil
-  end
-
-  it "disallows selecting opposing piece" do
-    test_board = ChessBoard.new(:standard)
-    expect(test_board.select(:white, "d7")).to eq false
-    expect(test_board.selected).to eq nil
-  end
-
-  it "allows valid selection" do
-    test_board = ChessBoard.new(:standard)
-    expect(test_board.select(:black, "d7")).to eq true
-    expect(test_board.selected).to eq [6,3]
-  end
-end
-
-describe "pieces should move correctly" do
-  describe "pawn" do
+describe "pieces should move correctly -" do
+  describe "pawn -" do
     it "moves one space forward" do
-      test_board = ChessBoard.new(:standard)
+      test_board = ChessGame.new(:standard)
       expect(test_board.board_square("d2").class).to eq Pawn
       expect(test_board.select(:white, "d2")).to eq true
       expect(test_board.move(:white, "d3")).to eq true
@@ -32,7 +12,7 @@ describe "pieces should move correctly" do
     end
 
     it "moves two spaces forward on first move only" do
-      test_board = ChessBoard.new(:standard)
+      test_board = ChessGame.new(:standard)
       expect(test_board.board_square("d2").class).to eq Pawn
 
       # First move
@@ -48,7 +28,7 @@ describe "pieces should move correctly" do
     end
 
     it "does not move in any other direction" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       expect(test_board.set_piece(:white, "e4", Pawn)).to eq true
 
@@ -66,7 +46,7 @@ describe "pieces should move correctly" do
     end
 
     it "does not move any other amount of spaces" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       expect(test_board.set_piece(:white, "e2", Pawn)).to eq true
 
@@ -79,7 +59,7 @@ describe "pieces should move correctly" do
     end
 
     it "moves diagonally only when capturing" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "b2", Pawn)).to eq true
@@ -99,7 +79,7 @@ describe "pieces should move correctly" do
     end
 
     it "can take another pawn en passant" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       expect(test_board.set_piece(:white, "a2", Pawn)).to eq true
       expect(test_board.set_piece(:black, "b4", Pawn)).to eq true
@@ -121,7 +101,7 @@ describe "pieces should move correctly" do
     end
 
     it "is promoted upon reaching far rank" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       expect(test_board.set_piece(:white, "b7", Pawn)).to eq true
       expect(test_board.set_piece(:black, "c2", Pawn)).to eq true
@@ -144,7 +124,7 @@ describe "pieces should move correctly" do
     end
 
     it "doesn't move through pieces" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "b2", Pawn)).to eq true
@@ -162,9 +142,9 @@ describe "pieces should move correctly" do
     end
   end
 
-  describe "rook" do
+  describe "rook -" do
     it "moves up/down/left/right" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the piece
       expect(test_board.set_piece(:white, "a1", Rook)).to eq true
@@ -191,7 +171,7 @@ describe "pieces should move correctly" do
     end
 
     it "does not move diagonally" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the piece
       expect(test_board.set_piece(:white, "c4", Rook)).to eq true
@@ -221,7 +201,7 @@ describe "pieces should move correctly" do
     end
 
     it "captures a piece" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the piece
       expect(test_board.set_piece(:white, "c4", Rook)).to eq true
@@ -239,7 +219,7 @@ describe "pieces should move correctly" do
     end
 
     it "doesn't move through pieces" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "b2", Rook)).to eq true
@@ -257,9 +237,9 @@ describe "pieces should move correctly" do
     end
   end
 
-  describe "knight" do
+  describe "knight -" do
     it "moves to the correct places" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "b1", Knight)).to eq true
@@ -277,7 +257,7 @@ describe "pieces should move correctly" do
     end
 
     it "does not move elsewhere" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "c3", Knight)).to eq true
@@ -299,7 +279,7 @@ describe "pieces should move correctly" do
     end
 
     it "captures a piece" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "b1", Knight)).to eq true
@@ -313,7 +293,7 @@ describe "pieces should move correctly" do
     end
 
     it "can jump over a piece" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "b1", Knight)).to eq true
@@ -329,9 +309,9 @@ describe "pieces should move correctly" do
     end
   end
 
-  describe "bishop" do
+  describe "bishop -" do
     it "moves diagonally" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "f1", Bishop)).to eq true
@@ -347,7 +327,7 @@ describe "pieces should move correctly" do
     end
 
     it "does not move up/down/left/right" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "f1", Bishop)).to eq true
@@ -359,7 +339,7 @@ describe "pieces should move correctly" do
     end
 
     it "captures a piece" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "f1", Bishop)).to eq true
@@ -373,7 +353,7 @@ describe "pieces should move correctly" do
     end
 
     it "does not move through other pieces" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "f1", Bishop)).to eq true
@@ -386,9 +366,9 @@ describe "pieces should move correctly" do
     end
   end
 
-  describe "queen" do
+  describe "queen -" do
     it "moves diagonally" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "d1", Queen)).to eq true
@@ -406,7 +386,7 @@ describe "pieces should move correctly" do
     end
 
     it "moves up/down/left/right" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the piece
       expect(test_board.set_piece(:white, "d1", Queen)).to eq true
@@ -433,7 +413,7 @@ describe "pieces should move correctly" do
     end
 
     it "captures a piece" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "d1", Queen)).to eq true
@@ -447,7 +427,7 @@ describe "pieces should move correctly" do
     end
 
     it "does not move through other pieces" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "f1", Queen)).to eq true
@@ -460,9 +440,9 @@ describe "pieces should move correctly" do
     end
   end
 
-  describe "king" do
+  describe "king -" do
     it "moves diagonally one space" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "e1", King)).to eq true
@@ -480,7 +460,7 @@ describe "pieces should move correctly" do
     end
 
     it "cannot move more than one space diagonally" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "e1", King)).to eq true
@@ -492,7 +472,7 @@ describe "pieces should move correctly" do
     end
 
     it "moves up/down/left/right one space" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "e1", King)).to eq true
@@ -510,7 +490,7 @@ describe "pieces should move correctly" do
     end
 
     it "cannot move more than one space" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "e1", King)).to eq true
@@ -522,7 +502,7 @@ describe "pieces should move correctly" do
     end
 
     it "captures a piece" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "e1", King)).to eq true
@@ -536,7 +516,7 @@ describe "pieces should move correctly" do
     end
 
     it "castles with a rook kingside" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "h1", Rook)).to eq true
@@ -558,7 +538,7 @@ describe "pieces should move correctly" do
     end
 
     it "castles with a rook queenside" do
-      test_board = ChessBoard.new(:blank)
+      test_board = ChessGame.new(:blank)
 
       # Place the pieces
       expect(test_board.set_piece(:white, "a1", Rook)).to eq true
@@ -577,290 +557,6 @@ describe "pieces should move correctly" do
       expect(test_board.board_square("d1").class).to eq Rook
       expect(test_board.board_square("c8").class).to eq King
       expect(test_board.board_square("d8").class).to eq Rook
-    end
-  end
-end
-
-describe "pieces should sense nearby pieces -" do
-  describe "pieces in taking range -" do
-    it "pawn senses pieces in range" do
-      # Any pieces on the squares diagonally forward (positive for white and negative for black)
-
-      test_board = ChessBoard.new(:blank)
-
-      # Place the pieces
-      expect(test_board.set_piece(:white, "f2", Pawn)).to eq true
-      expect(test_board.set_piece(:black, "g3", Pawn)).to eq true
-
-      test_board.piece_control
-
-      expect(test_board.board_square("f2").pieces_in_range.include?("BPg3")).to eq true
-      expect(test_board.board_square("g3").pieces_in_range.include?("WPf2")).to eq true
-    end
-
-    it "rook senses pieces in range" do
-      # First piece along any
-      test_board = ChessBoard.new(:blank)
-
-      # Place the pieces
-      expect(test_board.set_piece(:white, "c4", Rook)).to eq true
-      expect(test_board.set_piece(:black, "c6", Rook)).to eq true
-      expect(test_board.set_piece(:black, "a4", Rook)).to eq true
-      expect(test_board.set_piece(:black, "h4", Rook)).to eq true
-      expect(test_board.set_piece(:black, "c1", Rook)).to eq true
-
-      test_board.piece_control
-
-      expect(test_board.board_square("c4").pieces_in_range.include?("BRc6")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BRa4")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BRh4")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BRc1")).to eq true
-    end
-
-    it "knight senses pieces in range" do
-      test_board = ChessBoard.new(:blank)
-
-      # Place the pieces
-      expect(test_board.set_piece(:white, "d4", Knight)).to eq true
-      expect(test_board.set_piece(:black, "e6", Pawn)).to eq true
-      expect(test_board.set_piece(:black, "f5", Pawn)).to eq true
-      expect(test_board.set_piece(:black, "f3", Pawn)).to eq true
-      expect(test_board.set_piece(:black, "e2", Pawn)).to eq true
-      expect(test_board.set_piece(:black, "c2", Pawn)).to eq true
-      expect(test_board.set_piece(:black, "b3", Pawn)).to eq true
-      expect(test_board.set_piece(:black, "b5", Pawn)).to eq true
-      expect(test_board.set_piece(:black, "c6", Pawn)).to eq true
-
-      test_board.piece_control
-
-      expect(test_board.board_square("d4").pieces_in_range.include?("BPe6")).to eq true
-      expect(test_board.board_square("d4").pieces_in_range.include?("BPf5")).to eq true
-      expect(test_board.board_square("d4").pieces_in_range.include?("BPf3")).to eq true
-      expect(test_board.board_square("d4").pieces_in_range.include?("BPe2")).to eq true
-      expect(test_board.board_square("d4").pieces_in_range.include?("BPc2")).to eq true
-      expect(test_board.board_square("d4").pieces_in_range.include?("BPb3")).to eq true
-      expect(test_board.board_square("d4").pieces_in_range.include?("BPb5")).to eq true
-      expect(test_board.board_square("d4").pieces_in_range.include?("BPc6")).to eq true
-    end
-
-    it "bishop senses pieces in range" do
-      test_board = ChessBoard.new(:blank)
-
-      # Place the pieces
-      expect(test_board.set_piece(:white, "c4", Bishop)).to eq true
-      expect(test_board.set_piece(:black, "e6", Bishop)).to eq true
-      expect(test_board.set_piece(:black, "e2", Bishop)).to eq true
-      expect(test_board.set_piece(:black, "a6", Bishop)).to eq true
-      expect(test_board.set_piece(:black, "a2", Bishop)).to eq true
-
-      test_board.piece_control
-
-      expect(test_board.board_square("c4").pieces_in_range.include?("BBe6")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BBe2")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BBa6")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BBa2")).to eq true
-    end
-
-    it "queen senses pieces in range" do
-      test_board = ChessBoard.new(:blank)
-
-      # Place the pieces
-      expect(test_board.set_piece(:white, "c4", Queen)).to eq true
-      expect(test_board.set_piece(:black, "e6", Bishop)).to eq true
-      expect(test_board.set_piece(:black, "e2", Bishop)).to eq true
-      expect(test_board.set_piece(:black, "a6", Bishop)).to eq true
-      expect(test_board.set_piece(:black, "a2", Bishop)).to eq true
-      expect(test_board.set_piece(:black, "c6", Rook)).to eq true
-      expect(test_board.set_piece(:black, "a4", Rook)).to eq true
-      expect(test_board.set_piece(:black, "h4", Rook)).to eq true
-      expect(test_board.set_piece(:black, "c1", Rook)).to eq true
-
-      test_board.piece_control
-
-      expect(test_board.board_square("c4").pieces_in_range.include?("BBe6")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BBe2")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BBa6")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BBa2")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BRc6")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BRa4")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BRh4")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BRc1")).to eq true
-    end
-
-    it "king senses pieces in range" do
-      test_board = ChessBoard.new(:blank)
-
-      # Place the pieces
-      expect(test_board.set_piece(:white, "c4", King)).to eq true
-      expect(test_board.set_piece(:black, "c5", Pawn)).to eq true
-      expect(test_board.set_piece(:black, "c3", Pawn)).to eq true
-      expect(test_board.set_piece(:black, "b4", Pawn)).to eq true
-      expect(test_board.set_piece(:black, "d4", Pawn)).to eq true
-      expect(test_board.set_piece(:black, "b5", Pawn)).to eq true
-      expect(test_board.set_piece(:black, "b3", Pawn)).to eq true
-      expect(test_board.set_piece(:black, "d5", Pawn)).to eq true
-      expect(test_board.set_piece(:black, "d3", Pawn)).to eq true
-
-      test_board.piece_control
-
-      expect(test_board.board_square("c4").pieces_in_range.include?("BPc5")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BPc3")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BPb4")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BPd4")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BPb5")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BPb3")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BPd5")).to eq true
-      expect(test_board.board_square("c4").pieces_in_range.include?("BPd3")).to eq true
-    end
-
-    it "sensing should work on a standard board" do
-      test_board = ChessBoard.new(:standard)
-
-      # Mainly making sure this does not raise any errors
-      test_board.piece_control
-
-      expect(test_board.board_square("c1").pieces_in_range.include?("WPb2")).to eq true
-      expect(test_board.board_square("b1").pieces_in_range.include?("WPd2")).to eq true
-      expect(test_board.board_square("a1").pieces_in_range.include?("WPa2")).to eq true
-      expect(test_board.board_square("e8").pieces_in_range.include?("BPe7")).to eq true
-      expect(test_board.board_square("d8").pieces_in_range.include?("BKe8")).to eq true
-    end
-  end
-
-  describe "game check state -" do
-    describe "check -" do
-      it "a piece detecting an opposing king in range should put the game in check" do
-        test_board = ChessBoard.new(:blank)
-
-        # Place the pieces
-        expect(test_board.set_piece(:white, "e3", King)).to eq true
-        expect(test_board.set_piece(:black, "d5", Pawn)).to eq true
-
-        # Game should be playing, not in check
-        expect(test_board.game_state).to eq :playing
-
-        # Black pawn moves so white king is in range
-        expect(test_board.select(:black, "d5")). to eq true
-        expect(test_board.move(:black, "d4")). to eq true
-
-        test_board.piece_control
-
-        # Pawn should detect king in range
-        expect(test_board.board_square("d4").pieces_in_range.include?("WKe3")).to eq true
-
-        # Game should be in check
-        expect(test_board.game_state).to eq :check
-      end
-
-      it "a king moving out of harm's way should take the game out of check" do
-        test_board = ChessBoard.new(:blank)
-
-        # Place the pieces
-        expect(test_board.set_piece(:white, "e3", King)).to eq true
-        expect(test_board.set_piece(:black, "d4", Pawn)).to eq true
-
-        # Sense piece control
-        test_board.piece_control
-
-        # Pawn should detect king in range
-        expect(test_board.board_square("d4").pieces_in_range.include?("WKe3")).to eq true
-
-        # Game should be in check
-        expect(test_board.game_state).to eq :check
-
-        # King moves out of range
-        expect(test_board.select(:white, "e3")). to eq true
-        expect(test_board.move(:white, "e2")). to eq true
-
-        # Sense piece control
-        test_board.piece_control
-
-        # Game should be playing, not in check
-        expect(test_board.game_state).to eq :playing
-      end
-
-      it "another piece moving and breaking the check should put game out of check" do
-        # need to write test but should work already
-      end
-    end
-
-    describe "checkmate -" do
-      it "a king should detect safe moves to get out of check" do
-        # need to implement entirely
-      end
-
-      it "should detect a checkmate (no safe moves)" do
-        pending "need to implement checkmate detection"
-        test_board = ChessBoard.new(:blank)
-
-        # tests here
-
-        expect(test_board.game_state).to eq :checkmate
-      end
-
-      it "a state of checkmate should end the game and declare a winner" do
-        pending "need to implement win/lose/draw"
-        test_board = ChessBoard.new(:blank)
-        test_board.game_state = :checkmate
-        test_board.winner = :white
-        expect(test_board.game_state).to eq :checkmate
-        expect(test_board.winner).to eq :white
-      end
-    end
-
-    describe "stalemate -" do
-      it "a player cannot move to put themselves in check" do
-        # need to implement entirely
-      end
-
-      it "should detect a stalemate" do
-        pending "need to implement stalemate detection"
-        test_board = ChessBoard.new(:blank)
-
-        # tests here
-
-        expect(test_board.game_state).to eq :stalemate
-      end
-
-      it "a state of stalemate should end the game" do
-        pending "need to implement win/lose/draw"
-        test_board = ChessBoard.new(:blank)
-        test_board.game_state = :stalemate
-        expect(test_board.game_state).to eq :stalemate
-        expect(test_board.winner). to eq :draw
-      end
-    end
-
-    describe "resignation -" do
-      it "should give victory to other player" do
-        test_board = ChessBoard.new(:blank)
-        test_board.resign(:white)
-        expect(test_board.game_state).to eq :black_win
-
-        test_board = ChessBoard.new(:blank)
-        test_board.resign(:black)
-        expect(test_board.game_state).to eq :white_win
-      end
-    end
-
-    describe "game ending states -" do
-      it "a victory by white should register correctly" do
-        test_board = ChessBoard.new(:blank)
-        test_board.declare_victory(:white)
-        expect(test_board.game_state).to eq :white_win
-      end
-
-      it "a victory by black should register correctly" do
-        test_board = ChessBoard.new(:blank)
-        test_board.declare_victory(:black)
-        expect(test_board.game_state).to eq :black_win
-      end
-
-      it "a draw should register correctly" do
-        test_board = ChessBoard.new(:blank)
-        test_board.draw
-        expect(test_board.game_state).to eq :draw
-      end
     end
   end
 end
