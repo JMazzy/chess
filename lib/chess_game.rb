@@ -219,8 +219,13 @@ class ChessGame
         origin_piece.pieces_in_range = []
 
         control = origin_piece.controlled_squares
+        # iterate through each potential direction of movement
         control.each do |direction|
+          # no piece found in that direction yet
+          piece_in_range = false
+          # iterate through coordinates in each direction
           direction.each do |test_coords|
+
             if (  test_coords &&
                   test_coords[0] &&
                   test_coords[1] &&
@@ -228,23 +233,27 @@ class ChessGame
 
               test_row = test_coords[0]
               test_col = test_coords[1]
-              test_square = board.square(test_row,test_col)
 
-              team_marker = find_team_marker(test_square)
-              piece_marker = find_piece_marker(test_square.class)
-              piece_coordinates = indices_to_chess_coords(test_row,test_col)
-              origin_piece.pieces_in_range << "#{team_marker}#{piece_marker}#{piece_coordinates}"
+              threat_string = "#{find_team_marker(origin_piece)}#{find_piece_marker(origin_piece.class)}#{indices_to_chess_coords(origin_piece.row,origin_piece.col)}"
 
-              origin_coordinates = indices_to_chess_coords(origin_piece.row,origin_piece.col)
-              threat_string = "#{find_team_marker(origin_piece)}#{find_piece_marker(origin_piece.class)}#{origin_coordinates}"
+              # Add threat string to threat list
               board.add_threat(test_row,test_col,threat_string)
 
-              if test_square.class == King
-                self.game_state = "check_#{test_square.team}".to_sym
-              end
+              if board.piece_exists?(test_row,test_col) && !piece_in_range
+                test_square = board.square(test_row,test_col)
 
-              if board.piece_exists?(test_row,test_col)
-                break
+                # If it is a king, put in check
+                if test_square.class == King
+                  self.game_state = "check_#{test_square.team}".to_sym
+                end
+
+                # The string to add to pieces in range
+                piece_string = "#{find_team_marker(test_square)}#{find_piece_marker(test_square.class)}#{indices_to_chess_coords(test_row,test_col)}"
+
+                origin_piece.pieces_in_range << piece_string
+
+                # piece found; no further pieces can be in range in that direction
+                piece_in_range = true
               end
             end
           end
@@ -364,18 +373,21 @@ class ChessGame
         # If the path is clear for that piece to move
         if path_clear?(from_row, from_col, to_row, to_col)
 
-          # if from_piece.class != King || safe_move?(to_row, to_col)
+          # If the move does not put own king in check
+          # if safe_move?(to_row, to_col)
             # if square is occupied (not nil)
             if board.piece_exists?(to_row,to_col)
+              # parses :capture xor :illegal
               capture_move_type(player, from_row, from_col, to_row, to_col)
             elsif from_piece.class == Pawn
+              # Pawns have additional non-capture move types to parse
               pawn_move_type(player, coord_string, from_row, from_col, to_row, to_col)
             else
-              # Not a pawn or a capture
+              # Not a capture
               :normal
             end
           # else
-          #   messages << "ERROR: King cannot put self into check!"
+          #   messages << "ERROR: You cannot put yourself into check!"
           # end
 
         else
@@ -391,7 +403,7 @@ class ChessGame
       castle_type(player, coord_string)
     elsif coord_string == "resign"
       resign(player)
-      false
+      :resignation
     else
       messages << 'ERROR: Bad move input!'
       :illegal
@@ -405,7 +417,7 @@ class ChessGame
 
     move_type = find_move_type(player, coord_string)
 
-    if move_type == :illegal
+    if move_type == :illegal || move_type == :resignation
       false
     else
       if move_type.to_s[0..5] == 'castle'
