@@ -312,15 +312,11 @@ class ChessGame
         origin_piece.possible_moves.each do |possible_move|
           move_coords = chess_coords_to_indices(possible_move)
           if safe_move?(team, origin_piece.row, origin_piece.col, move_coords[0], move_coords[1])
-            puts "no mate!"
-            puts "#{origin_piece.row}, #{origin_piece.col}"
-            puts "#{move_coords[0]}, #{move_coords[1]}"
             return false
           end
         end
       end
     end
-    puts "mate!"
     return true
   end
 

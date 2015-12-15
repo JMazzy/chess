@@ -162,6 +162,12 @@ describe 'game check state -' do
       expect(test_game.set_piece(:white, 'f7', King)).to eq true
       expect(test_game.set_piece(:white, 'g6', Queen)).to eq true
 
+      test_game.current_player = :white
+
+      test_game.piece_control
+
+      expect(test_game.game_state).to eq :playing
+
       test_game.switch_player
 
       expect(test_game.game_state).to eq :draw
