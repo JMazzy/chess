@@ -137,10 +137,13 @@ describe 'game check state -' do
   describe 'checkmate -' do
 
     it 'should detect a checkmate (no safe moves)' do
-      pending 'need to implement checkmate detection'
       test_game = ChessGame.new(:blank)
 
-      # tests here
+      expect(test_game.set_piece(:black, 'h5', King)).to eq true
+      expect(test_game.set_piece(:white, 'f5', King)).to eq true
+      expect(test_game.set_piece(:white, 'h1', Rook)).to eq true
+
+      test_game.switch_player
 
       expect(test_game.game_state).to eq :checkmate
     end
@@ -148,21 +151,24 @@ describe 'game check state -' do
     it 'a state of checkmate should end the game and declare a winner' do
       test_game = ChessGame.new(:blank)
       test_game.checkmate(:white)
-      expect(test_game.game_state).to eq :white_win
+      expect(test_game.game_state).to eq :black_win
 
       test_game = ChessGame.new(:blank)
       test_game.checkmate(:black)
-      expect(test_game.game_state).to eq :black_win
+      expect(test_game.game_state).to eq :white_win
     end
   end
 
   describe 'stalemate -' do
 
     it 'should detect a stalemate' do
-      pending 'need to implement stalemate detection'
       test_game = ChessGame.new(:blank)
 
-      # tests here
+      expect(test_game.set_piece(:black, 'h8', King)).to eq true
+      expect(test_game.set_piece(:white, 'f7', King)).to eq true
+      expect(test_game.set_piece(:white, 'g6', Queen)).to eq true
+
+      test_game.switch_player
 
       expect(test_game.game_state).to eq :stalemate
     end

@@ -32,7 +32,7 @@ class ChessPiece
     self.pieces_in_range << piece
   end
 
-  def add_possible_move(move)
-    self.possible_moves << moves
+  def add_possible_move(possible_move)
+    self.possible_moves << possible_move
   end
 end

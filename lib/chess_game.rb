@@ -77,6 +77,16 @@ class ChessGame
     else
       self.current_player = :white
     end
+
+    piece_control
+
+    if mate?(current_player)
+      if game_state == "check_#{current_player}".to_sym
+        checkmate(current_player)
+      else
+        stalemate(current_player)
+      end
+    end
   end
 
   def board_square(coord_string)
@@ -322,12 +332,22 @@ class ChessGame
     result
   end
 
-  def any_safe_moves?(team)
+  def mate?(team)
     board.each do |origin_piece|
       if origin_piece && origin_piece.team == current_player
-
+        origin_piece.possible_moves.each do |possible_move|
+          move_coords = chess_coords_to_indices(possible_move)
+          if safe_move?(team,origin_piece.row, origin_piece.col, move_coords[0], move_coords[1])
+            puts "no mate!"
+            puts "#{origin_piece.row}, #{origin_piece.col}"
+            puts "#{move_coords[0]}, #{move_coords[1]}"
+            return false
+          end
+        end
       end
     end
+    puts "mate!"
+    return true
   end
 
   def castle_type(player, coord_string)
@@ -456,7 +476,7 @@ class ChessGame
     end
   end
 
-  def move(player, coord_string, board=self.board)
+  def move(player, coord_string)
     from_row = selected[0]
     from_col = selected[1]
     from_piece = board.square(from_row,from_col)
@@ -616,7 +636,12 @@ class ChessGame
   end
 
   def checkmate(player)
-    declare_victory(player)
+    if player == :white
+      declare_victory(:black)
+    else
+      declare_victory(:white)
+    end
+
     messages << "CHECKMATE: #{player.capitalize} won in a checkmate!"
   end
 
