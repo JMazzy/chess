@@ -157,9 +157,6 @@ describe 'game check state -' do
   end
 
   describe 'stalemate -' do
-    it 'a player cannot move to put themselves in check' do
-      # need to implement entirely
-    end
 
     it 'should detect a stalemate' do
       pending 'need to implement stalemate detection'

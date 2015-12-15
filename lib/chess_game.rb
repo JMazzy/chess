@@ -296,15 +296,11 @@ class ChessGame
 
   # Returns true if that move does not result in check
   def safe_move?( team, from_row,from_col, to_row, to_col)
-    p board.board.object_id
     backup_board = Marshal.load(Marshal.dump(board))
-    p backup_board.board.object_id
 
     # try the move
     board.move_piece(from_row,from_col,to_row,to_col)
     piece_control
-    p board.board.object_id
-    p backup_board.board.object_id
 
     if game_state == "check_#{team}".to_sym
       result = false
@@ -315,7 +311,6 @@ class ChessGame
     # switch back to the backup board
     self.board = backup_board
     piece_control
-    p board.board.object_id
 
     # Return the result of this check
     result
