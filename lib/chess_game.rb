@@ -216,8 +216,6 @@ class ChessGame
 
   # iterates through each square on the board, populating each piece's list of controlled squares
   def piece_control
-    self.game_state = :playing
-
     board.each do |origin_piece|
       if origin_piece
 
@@ -247,11 +245,6 @@ class ChessGame
                 origin_piece.add_possible_move(move_string)
 
                 if board.piece_exists?(test_row,test_col)
-                  # If it is a king, put in check
-                  if board.piece_class(test_row,test_col) == King
-                    self.game_state = "check_#{board.piece_team(test_row,test_col)}".to_sym
-                  end
-
                   # The string to add to pieces in range
                   piece_string = find_piece_string(test_row,test_col)
 
@@ -263,6 +256,28 @@ class ChessGame
                 end
               end
             end
+          end
+        end
+      end
+    end
+    check_for_check(current_player)
+  end
+
+  def check_for_check(team)
+    self.game_state = :playing
+
+    if team == :white
+      other_team = :black
+    else
+      other_team = :white
+    end
+
+    board.each do |origin_piece|
+      if origin_piece && origin_piece.team == other_team
+        origin_piece.pieces_in_range.each do |piece_string|
+          m = piece_string.match(/(\w)(\w)(\w\d)/)
+          if m[1] == team.to_s[0].upcase && m[2] == "K"
+            self.game_state = "check_#{team}".to_sym
           end
         end
       end

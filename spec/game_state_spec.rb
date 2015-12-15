@@ -97,9 +97,6 @@ describe 'game check state -' do
       # Sense piece control
       test_game.piece_control
 
-      # coords = test_game.chess_coords_to_indices('d4')
-      # expect(test_game.board.square_threats(coords[0],coords[1]).include?('WBe5')).to eq true
-
       # King moves into check; should fail
       expect(test_game.select(:black, 'c5')).to eq true
       expect(test_game.move(:black, 'd4')).to eq false
@@ -118,9 +115,6 @@ describe 'game check state -' do
       expect(test_game.set_piece(:black, 'c5', King)).to eq true
       expect(test_game.set_piece(:black, 'd4', Pawn)).to eq true
       expect(test_game.set_piece(:white, 'e3', Bishop)).to eq true
-
-      # expect(test_game.board_square_threats('c5').include?('WBe3'))
-      # expect(test_game.board_square_threats('d4').include?('WBe3'))
 
       # King moves into check; should fail
       expect(test_game.select(:black, 'd4')).to eq true
