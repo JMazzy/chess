@@ -145,5 +145,34 @@ describe 'pieces should sense nearby pieces -' do
       expect(test_game.board_square('e8').pieces_in_range.include?('BPe7')).to eq true
       expect(test_game.board_square('d8').pieces_in_range.include?('BKe8')).to eq true
     end
+
+    it 'possible moves should be gathered correctly' do
+      test_game = ChessGame.new(:blank)
+
+      expect(test_game.set_piece(:black, 'c5', King)).to eq true
+
+      test_game.piece_control
+
+      expect(test_game.board_square('c5').possible_moves.include?('c6')).to eq true
+      expect(test_game.board_square('c5').possible_moves.include?('b5')).to eq true
+      expect(test_game.board_square('c5').possible_moves.include?('d6')).to eq true
+      expect(test_game.board_square('c5').possible_moves.include?('a1')).to eq false
+    end
+
+    it 'safe moves should be detected correctly' do
+      test_game = ChessGame.new(:blank)
+
+      expect(test_game.set_piece(:white, 'c5', King)).to eq true
+      expect(test_game.set_piece(:black, 'd6', Pawn)).to eq true
+      expect(test_game.set_piece(:black, 'a6', Pawn)).to eq true
+
+      test_game.piece_control
+
+      expect(test_game.game_state).to eq :check_white
+
+      expect(test_game.safe_move?(:white,4,2,5,3)).to eq true
+      expect(test_game.safe_move?(:white,4,2,3,2)).to eq true
+      expect(test_game.safe_move?(:white,4,2,4,1)).to eq false
+    end
   end
 end

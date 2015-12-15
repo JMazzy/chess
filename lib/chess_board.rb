@@ -20,7 +20,7 @@ require_relative './rook.rb'
 
 class ChessBoard
 
-  attr_accessor :board, :captured_pieces, :threats
+  attr_accessor :board, :captured_pieces
 
   def initialize
 
@@ -28,13 +28,10 @@ class ChessBoard
     @num_columns = 8
 
     self.board = []
-    self.threats = []
     (0...@num_rows).each do |row|
       self.board[row] = []
-      self.threats[row] = []
       (0...@num_columns).each do |col|
         self.board[row][col] = nil
-        self.threats[row][col] = []
       end
     end
 
@@ -64,23 +61,6 @@ class ChessBoard
 
   def square(row,col)
     board[row][col]
-  end
-
-  # Returns an array of pieces which threaten this square
-  def square_threats(row,col)
-    threats[row][col]
-  end
-
-  def clear_all_threats
-    self.threats.each do |row|
-      row.each do |space|
-        space = []
-      end
-    end
-  end
-
-  def add_threat(row,col,threat)
-    self.threats[row][col] << threat
   end
 
   def set_piece(row,col,team,piece_class)

@@ -98,15 +98,6 @@ class ChessGame
     end
   end
 
-  def board_square_threats(coord_string)
-    if coords = chess_coords_to_indices(coord_string)
-      row = coords[0]
-      col = coords[1]
-
-      board.square_threats(row,col)
-    end
-  end
-
   def set_piece(team, coord_string, piece_class)
     if coords = chess_coords_to_indices(coord_string)
       row = coords[0]
@@ -226,10 +217,12 @@ class ChessGame
   # iterates through each square on the board, populating each piece's list of controlled squares
   def piece_control
     self.game_state = :playing
-    board.clear_all_threats
 
     board.each do |origin_piece|
       if origin_piece
+
+        origin_piece.clear_possible_moves
+        origin_piece.clear_pieces_in_range
 
         origin_piece.pieces_in_range = []
 
@@ -248,13 +241,6 @@ class ChessGame
 
               test_row = test_coords[0]
               test_col = test_coords[1]
-              if  !board.piece_exists?(test_row,test_col) ||
-                  find_team_marker(board.piece_team(test_row,test_col)) != find_team_marker(board.piece_team(origin_piece.row,origin_piece.col))
-                threat_string = find_piece_string(origin_piece.row,origin_piece.col)
-
-                # Add threat string to threat list
-                board.add_threat(test_row,test_col,threat_string)
-              end
 
               if !piece_found_in_range
                 move_string = indices_to_chess_coords(test_coords[0],test_coords[1])
@@ -264,8 +250,6 @@ class ChessGame
                   # If it is a king, put in check
                   if board.piece_class(test_row,test_col) == King
                     self.game_state = "check_#{board.piece_team(test_row,test_col)}".to_sym
-                  else
-                    self.game_state = :playing
                   end
 
                   # The string to add to pieces in range
@@ -282,31 +266,6 @@ class ChessGame
           end
         end
       end
-    end
-  end
-
-  def find_piece_string(row,col)
-    team_marker = find_team_marker(board.piece_team(row,col))
-    piece_marker = find_piece_marker(board.piece_class(row,col))
-    coordinates = indices_to_chess_coords(row,col)
-    "#{team_marker}#{piece_marker}#{coordinates}"
-  end
-
-  def find_piece_marker(piece_class)
-    if piece_class == NilClass
-      "0"
-    elsif piece_class == Knight
-      "N"
-    else
-      piece_class.to_s[0]
-    end
-  end
-
-  def find_team_marker(piece_team)
-    if piece_team == :none
-      "0"
-    else
-      piece_team.to_s[0].upcase
     end
   end
 
@@ -337,7 +296,7 @@ class ChessGame
       if origin_piece && origin_piece.team == current_player
         origin_piece.possible_moves.each do |possible_move|
           move_coords = chess_coords_to_indices(possible_move)
-          if safe_move?(team,origin_piece.row, origin_piece.col, move_coords[0], move_coords[1])
+          if safe_move?(team, origin_piece.row, origin_piece.col, move_coords[0], move_coords[1])
             puts "no mate!"
             puts "#{origin_piece.row}, #{origin_piece.col}"
             puts "#{move_coords[0]}, #{move_coords[1]}"
@@ -348,6 +307,31 @@ class ChessGame
     end
     puts "mate!"
     return true
+  end
+
+  def find_piece_string(row,col)
+    team_marker = find_team_marker(board.piece_team(row,col))
+    piece_marker = find_piece_marker(board.piece_class(row,col))
+    coordinates = indices_to_chess_coords(row,col)
+    "#{team_marker}#{piece_marker}#{coordinates}"
+  end
+
+  def find_piece_marker(piece_class)
+    if piece_class == NilClass
+      "0"
+    elsif piece_class == Knight
+      "N"
+    else
+      piece_class.to_s[0]
+    end
+  end
+
+  def find_team_marker(piece_team)
+    if piece_team == :none
+      "0"
+    else
+      piece_team.to_s[0].upcase
+    end
   end
 
   def castle_type(player, coord_string)

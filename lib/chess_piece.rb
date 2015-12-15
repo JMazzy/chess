@@ -1,6 +1,6 @@
 class ChessPiece
 
-  attr_accessor :team, :col, :row, :first_move, :pieces_in_range, :possible_moves, :threats
+  attr_accessor :team, :col, :row, :first_move, :pieces_in_range, :possible_moves
 
   def initialize(team,row,col)
     self.team = team
