@@ -39,8 +39,4 @@ class ChessPiece
   def add_possible_move(move)
     self.possible_moves << moves
   end
-
-  def add_threat(threat)
-    self.threats << threat
-  end
 end
