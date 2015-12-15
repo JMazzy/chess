@@ -1,6 +1,6 @@
 class ChessPiece
 
-  attr_accessor :team, :col, :row, :first_move, :pieces_in_range
+  attr_accessor :team, :col, :row, :first_move, :pieces_in_range, :possible_moves, :threats
 
   def initialize(team,row,col)
     self.team = team
@@ -8,6 +8,7 @@ class ChessPiece
     self.row = row
     self.first_move = true
     self.pieces_in_range = []
+    self.possible_moves = []
   end
 
   def move(row,col)
@@ -17,5 +18,29 @@ class ChessPiece
     if first_move
       self.first_move = false
     end
+  end
+
+  def clear_pieces_in_range
+    self.pieces_in_range = []
+  end
+
+  def clear_possible_moves
+    self.possible_moves = []
+  end
+
+  def clear_threats
+    self.threats = []
+  end
+
+  def add_piece_in_range(piece)
+    self.pieces_in_range << piece
+  end
+
+  def add_possible_move(move)
+    self.possible_moves << moves
+  end
+
+  def add_threat(threat)
+    self.threats << threat
   end
 end

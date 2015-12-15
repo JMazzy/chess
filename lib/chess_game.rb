@@ -316,6 +316,14 @@ class ChessGame
     result
   end
 
+  def any_safe_moves?(team)
+    board.each do |origin_piece|
+      if origin_piece && origin_piece.team == current_player
+
+      end
+    end
+  end
+
   def castle_type(player, coord_string)
     if player == :white
       row = 0
