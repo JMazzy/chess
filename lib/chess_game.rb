@@ -228,7 +228,7 @@ class ChessGame
         # iterate through each potential direction of movement
         control.each do |direction|
           # no piece found in that direction yet
-          piece_in_range = false
+          piece_found_in_range = false
           # iterate through coordinates in each direction
           direction.each do |test_coords|
             if (  test_coords &&
@@ -246,21 +246,27 @@ class ChessGame
                 board.add_threat(test_row,test_col,threat_string)
               end
 
-              if board.piece_exists?(test_row,test_col) && !piece_in_range
-                # If it is a king, put in check
-                if board.piece_class(test_row,test_col) == King
-                  self.game_state = "check_#{board.piece_team(test_row,test_col)}".to_sym
-                else
-                  self.game_state = :playing
+              if !piece_found_in_range
+                move_string = indices_to_chess_coords(test_coords[0],test_coords[1])
+                origin_piece.add_possible_move(move_string)
+
+                if board.piece_exists?(test_row,test_col)
+                  # If it is a king, put in check
+                  if board.piece_class(test_row,test_col) == King
+                    self.game_state = "check_#{board.piece_team(test_row,test_col)}".to_sym
+                  else
+                    self.game_state = :playing
+                  end
+
+                  # The string to add to pieces in range
+                  piece_string = find_piece_string(test_row,test_col)
+
+                  # Add the piece to the origin_pieces pieces in range
+                  origin_piece.add_piece_in_range(piece_string)
+
+                  # piece found; no further pieces can be in range in that direction
+                  piece_found_in_range = true
                 end
-
-                # The string to add to pieces in range
-                piece_string = find_piece_string(test_row,test_col)
-
-                origin_piece.pieces_in_range << piece_string
-
-                # piece found; no further pieces can be in range in that direction
-                piece_in_range = true
               end
             end
           end

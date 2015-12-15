@@ -28,10 +28,6 @@ class ChessPiece
     self.possible_moves = []
   end
 
-  def clear_threats
-    self.threats = []
-  end
-
   def add_piece_in_range(piece)
     self.pieces_in_range << piece
   end
