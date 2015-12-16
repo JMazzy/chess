@@ -130,7 +130,7 @@ describe 'game check state -' do
 
   describe 'checkmate -' do
 
-    it 'should detect a checkmate (no safe moves)' do
+    it 'should detect a simple checkmate' do
       test_game = ChessGame.new(:blank)
 
       expect(test_game.set_piece(:black, 'h5', King)).to eq true
@@ -140,6 +140,69 @@ describe 'game check state -' do
       test_game.switch_player
 
       expect(test_game.game_state).to eq :white_win
+    end
+
+    it 'should detect a more complex checkmate' do
+      test_game = ChessGame.new(:blank)
+      expect(test_game.set_piece(:white, 'g2', King)).to eq true
+      expect(test_game.set_piece(:white, 'c6', Bishop)).to eq true
+      expect(test_game.set_piece(:white, 'd8', Rook)).to eq true
+
+      expect(test_game.set_piece(:black, 'b8', King)).to eq true
+      expect(test_game.set_piece(:black, 'c7', Pawn)).to eq true
+      expect(test_game.set_piece(:black, 'a7', Pawn)).to eq true
+
+      test_game.switch_player
+
+      expect(test_game.game_state).to eq :white_win
+    end
+
+    it 'should detect a stammas mate' do
+      test_game = ChessGame.new(:blank)
+      expect(test_game.set_piece(:white, 'c2', King)).to eq true
+      expect(test_game.set_piece(:white, 'd3', Knight)).to eq true
+
+      expect(test_game.set_piece(:black, 'a2', King)).to eq true
+      expect(test_game.set_piece(:black, 'a3', Pawn)).to eq true
+
+      expect(test_game.current_player).to eq :white
+
+      # White knight to b4
+      test_game.handle_selection('d3')
+      test_game.handle_moving('b4')
+      # Black king to a1
+      test_game.handle_selection('a2')
+      test_game.handle_moving('a1')
+      # White king to c1
+      test_game.handle_selection('c2')
+      test_game.handle_moving('c1')
+      # Black pawn to a2
+      expect(test_game.handle_selection('a3')).to eq :select_success
+      expect(test_game.handle_moving('a2')).to eq :move_success
+      # White knight to c2
+      test_game.handle_selection('b4')
+      test_game.handle_moving('c2')
+
+      expect(test_game.game_state).to eq :white_win
+    end
+
+    it 'should detect a fools mate' do
+      pending "pawn possible move / piece in range detection needs fixing"
+      test_game = ChessGame.new(:standard)
+
+      expect(test_game.handle_selection('f2')).to eq :select_success
+      expect(test_game.handle_moving('f3')).to eq :move_success
+
+      expect(test_game.handle_selection('e7')).to eq :select_success
+      expect(test_game.handle_moving('e5')).to eq :move_success
+
+      expect(test_game.handle_selection('g2')).to eq :select_success
+      expect(test_game.handle_moving('g4')).to eq :move_success
+
+      expect(test_game.handle_selection('d8')).to eq :select_success
+      expect(test_game.handle_moving('h4')).to eq :move_success
+
+      expect(test_game.game_state).to eq :black_win
     end
 
     it 'checkmate should end the game and declare a winner' do

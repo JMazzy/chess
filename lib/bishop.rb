@@ -2,10 +2,6 @@ require_relative './chess_piece.rb'
 
 class Bishop < ChessPiece
 
-  def initialize( team, row, col )
-    super
-  end
-
   def move_ok?( new_row, new_col, move_type=:normal )
     col_move = (new_col - col).abs
     row_move = (new_row - row).abs

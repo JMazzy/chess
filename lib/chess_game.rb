@@ -39,6 +39,9 @@ class ChessGame
       self.selecting = false
       # turn moving on
       self.moving = true
+      return :select_success
+    else
+      return :select_fail
     end
   end
 
@@ -52,8 +55,20 @@ class ChessGame
 
       # switch players
       switch_player
+      return :move_success
     else
       revert
+      return :move_fail
+    end
+  end
+
+  def handle_mate
+    if mate?(current_player)
+      if game_state == "check_#{current_player}".to_sym
+        checkmate(current_player)
+      else
+        stalemate(current_player)
+      end
     end
   end
 
@@ -67,8 +82,6 @@ class ChessGame
       self.selecting = true
       self.moving = false
     end
-
-    piece_control
   end
 
   def switch_player
@@ -80,13 +93,7 @@ class ChessGame
 
     piece_control
 
-    if mate?(current_player)
-      if game_state == "check_#{current_player}".to_sym
-        checkmate(current_player)
-      else
-        stalemate(current_player)
-      end
-    end
+    handle_mate
   end
 
   def board_square(coord_string)
@@ -240,9 +247,12 @@ class ChessGame
               test_row = test_coords[0]
               test_col = test_coords[1]
 
-              if !piece_found_in_range
-                move_string = indices_to_chess_coords(test_coords[0],test_coords[1])
-                origin_piece.add_possible_move(move_string)
+              if  !piece_found_in_range
+                if  !board.piece_exists?(test_row,test_col) ||
+                    board.piece_team(test_row,test_col) != board.piece_team(origin_piece.row,origin_piece.col)
+                  move_string = indices_to_chess_coords(test_coords[0],test_coords[1])
+                  origin_piece.add_possible_move(move_string)
+                end
 
                 if board.piece_exists?(test_row,test_col)
                   # The string to add to pieces in range
@@ -299,6 +309,7 @@ class ChessGame
     end
 
     # switch back to the backup board
+    board.move_piece(to_row,to_col,from_row,from_col)
     self.board = backup_board
     piece_control
 
@@ -308,10 +319,11 @@ class ChessGame
 
   def mate?(team)
     board.each do |origin_piece|
-      if origin_piece && origin_piece.team == current_player
+      if !!origin_piece && origin_piece.team == current_player
         origin_piece.possible_moves.each do |possible_move|
           move_coords = chess_coords_to_indices(possible_move)
           if safe_move?(team, origin_piece.row, origin_piece.col, move_coords[0], move_coords[1])
+            puts "#{indices_to_chess_coords(origin_piece.row, origin_piece.col)} to #{indices_to_chess_coords(move_coords[0], move_coords[1])}"
             return false
           end
         end
@@ -523,10 +535,12 @@ class ChessGame
   end
 
   def normal_move(player, coord_string, from_row, from_col, to_row, to_col)
+    from_piece = board.square(from_row,from_col)
+
     # get the captured piece (nil if no capture)
     captured_piece = board.square(to_row,to_col)
 
-    if captured_piece # if the square is occupied (not nil)
+    if !!captured_piece # if the square is occupied (not nil)
       board.capture_piece(to_row,to_col)
       move_phrase = "captured #{captured_piece.class} at #{coord_string}"
     else
@@ -535,8 +549,6 @@ class ChessGame
 
     # actually move the piece, leaving a blank square
     board.move_piece(from_row,from_col,to_row,to_col)
-
-    from_piece = board.square(from_row,from_col)
 
     messages << "MOVE: #{player.capitalize} #{from_piece.class} #{move_phrase}"
   end

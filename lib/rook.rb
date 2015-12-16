@@ -2,10 +2,6 @@ require_relative './chess_piece.rb'
 
 class Rook < ChessPiece
 
-  def initialize( team, row, col )
-    super
-  end
-
   def move_ok?( new_row, new_col, move_type=:normal )
     col_move = (col - new_col).abs
     row_move = (row - new_row).abs
