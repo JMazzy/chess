@@ -225,6 +225,8 @@ class ChessGame
   def piece_sensing
     # iterate through each piece on the board
     board.each do |origin_piece|
+
+      # Only consider origin pieces which exist
       if !!origin_piece
 
         # clear the piece's sensing data before populating
@@ -233,6 +235,7 @@ class ChessGame
 
         # iterate through each potential direction of movement
         origin_piece.controlled_squares.each do |direction_of_movement|
+
           # iterate through coordinates moving away from the piece
           direction_of_movement.each do |test_coords|
             if (  test_coords &&
@@ -243,14 +246,14 @@ class ChessGame
               test_col = test_coords[1]
 
               # Call the possible move detection method
-              if detect_possible_move(origin_piece,test_row,test_col)
+              if possible_move?(origin_piece,test_row,test_col)
                 move_string = indices_to_chess_coords(test_row,test_col)
                 origin_piece.add_possible_move(move_string)
               end
 
               # Call the piece detection method and break if it succeeds;
               # Once a piece is found, no more moves in that direction are valid
-              if detect_piece_in_range(origin_piece, test_row, test_col)
+              if piece_in_range?(origin_piece, test_row, test_col)
                 # The string to add to pieces in range
                 piece_string = find_piece_string(test_row,test_col)
 
@@ -267,7 +270,7 @@ class ChessGame
   end
 
   # Determines whether the origin piece can complete a move to the given coordinates
-  def detect_possible_move(origin_piece, test_row, test_col)
+  def possible_move?(origin_piece, test_row, test_col)
     if  !board.piece_exists?(test_row,test_col) ||
         board.piece_team(test_row,test_col) != board.piece_team(origin_piece.row,origin_piece.col)
       if origin_piece.class == Pawn
@@ -285,14 +288,18 @@ class ChessGame
     end
   end
 
-  def detect_piece_in_range(origin_piece, test_row, test_col)
+  def pawn_attacks
+    if test_col != origin_piece.col
+      true
+    else
+      false
+    end
+  end
+
+  def piece_in_range?(origin_piece, test_row, test_col)
     if board.piece_exists?(test_row,test_col)
       if origin_piece.class == Pawn
-        if test_col != origin_piece.col
-          true
-        else
-          false
-        end
+
       else
         true
       end

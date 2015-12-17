@@ -167,10 +167,6 @@ describe 'pieces should sense nearby pieces -' do
 
     end
 
-    it 'possible moves includes pawn promotion' do
-      
-    end
-
     it 'safe moves should be detected correctly - normal moves' do
       test_game = ChessGame.new(:blank)
 
