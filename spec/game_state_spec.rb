@@ -17,7 +17,7 @@ describe 'game check state -' do
       expect(test_game.select(:black, 'd5')).to eq true
       expect(test_game.move(:black, 'd4')).to eq true
 
-      test_game.piece_control
+      test_game.piece_sensing
 
       # Pawn should detect king in range
       expect(test_game.board_square('d4').pieces_in_range.include?('WKe3')).to eq true
@@ -34,7 +34,7 @@ describe 'game check state -' do
       expect(test_game.set_piece(:black, 'd4', Pawn)).to eq true
 
       # Sense piece control
-      test_game.piece_control
+      test_game.piece_sensing
 
       # Pawn should detect king in range
       expect(test_game.board_square('d4').pieces_in_range.include?('WKe3')).to eq true
@@ -47,7 +47,7 @@ describe 'game check state -' do
       expect(test_game.move(:white, 'e2')). to eq true
 
       # Sense piece control
-      test_game.piece_control
+      test_game.piece_sensing
 
       # Game should be playing, not in check
       expect(test_game.game_state).to eq :playing
@@ -63,7 +63,7 @@ describe 'game check state -' do
       expect(test_game.set_piece(:white, 'd3', Rook)).to eq true
 
       # Sense piece control
-      test_game.piece_control
+      test_game.piece_sensing
 
       # Bishop should detect king in range
       expect(test_game.board_square('c6').pieces_in_range.include?('WKe4')).to eq true
@@ -78,7 +78,7 @@ describe 'game check state -' do
       expect(test_game.board_square('d5').class).to eq Rook
 
       # Sense piece control
-      test_game.piece_control
+      test_game.piece_sensing
 
       # Bishop should NOT detect king in range
       expect(test_game.board_square('c6').pieces_in_range.include?('WKe4')).to eq false
@@ -95,7 +95,7 @@ describe 'game check state -' do
       expect(test_game.set_piece(:white, 'e5', Bishop)).to eq true
 
       # Sense piece control
-      test_game.piece_control
+      test_game.piece_sensing
 
       # King moves into check; should fail
       expect(test_game.select(:black, 'c5')).to eq true
@@ -227,7 +227,7 @@ describe 'game check state -' do
 
       test_game.current_player = :white
 
-      test_game.piece_control
+      test_game.piece_sensing
 
       expect(test_game.game_state).to eq :playing
 

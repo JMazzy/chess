@@ -75,7 +75,7 @@ describe "pieces should move correctly -" do
       expect(test_game.board_square("c3").team).to eq :white
       expect(test_game.board.captured_pieces[:black][0].class).to eq Pawn
 
-      test_game.piece_control
+      test_game.piece_sensing
     end
 
     it "can take another pawn en passant" do

@@ -91,7 +91,7 @@ class ChessGame
       self.current_player = :white
     end
 
-    piece_control
+    piece_sensing
 
     handle_mate
   end
@@ -222,7 +222,7 @@ class ChessGame
   end
 
   # iterates through each square on the board, populating each piece's list of controlled squares
-  def piece_control
+  def piece_sensing
     board.each do |origin_piece|
       if !!origin_piece
 
@@ -307,7 +307,7 @@ class ChessGame
 
     # try the move
     board.move_piece(from_row,from_col,to_row,to_col)
-    piece_control
+    piece_sensing
 
     if game_state == "check_#{team}".to_sym
       result = false
@@ -318,7 +318,7 @@ class ChessGame
     # switch back to the backup board
     board.move_piece(to_row,to_col,from_row,from_col)
     self.board = backup_board
-    piece_control
+    piece_sensing
 
     # Return the result of this check
     result

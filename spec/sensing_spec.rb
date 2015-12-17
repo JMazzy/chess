@@ -12,7 +12,7 @@ describe 'pieces should sense nearby pieces -' do
       expect(test_game.set_piece(:white, 'f2', Pawn)).to eq true
       expect(test_game.set_piece(:black, 'g3', Pawn)).to eq true
 
-      test_game.piece_control
+      test_game.piece_sensing
 
       expect(test_game.board_square('f2').pieces_in_range.include?('BPg3')).to eq true
       expect(test_game.board_square('g3').pieces_in_range.include?('WPf2')).to eq true
@@ -29,7 +29,7 @@ describe 'pieces should sense nearby pieces -' do
       expect(test_game.set_piece(:black, 'h4', Rook)).to eq true
       expect(test_game.set_piece(:black, 'c1', Rook)).to eq true
 
-      test_game.piece_control
+      test_game.piece_sensing
 
       expect(test_game.board_square('c4').pieces_in_range.include?('BRc6')).to eq true
       expect(test_game.board_square('c4').pieces_in_range.include?('BRa4')).to eq true
@@ -51,7 +51,7 @@ describe 'pieces should sense nearby pieces -' do
       expect(test_game.set_piece(:black, 'b5', Pawn)).to eq true
       expect(test_game.set_piece(:black, 'c6', Pawn)).to eq true
 
-      test_game.piece_control
+      test_game.piece_sensing
 
       expect(test_game.board_square('d4').pieces_in_range.include?('BPe6')).to eq true
       expect(test_game.board_square('d4').pieces_in_range.include?('BPf5')).to eq true
@@ -73,7 +73,7 @@ describe 'pieces should sense nearby pieces -' do
       expect(test_game.set_piece(:black, 'a6', Bishop)).to eq true
       expect(test_game.set_piece(:black, 'a2', Bishop)).to eq true
 
-      test_game.piece_control
+      test_game.piece_sensing
 
       expect(test_game.board_square('c4').pieces_in_range.include?('BBe6')).to eq true
       expect(test_game.board_square('c4').pieces_in_range.include?('BBe2')).to eq true
@@ -95,7 +95,7 @@ describe 'pieces should sense nearby pieces -' do
       expect(test_game.set_piece(:black, 'h4', Rook)).to eq true
       expect(test_game.set_piece(:black, 'c1', Rook)).to eq true
 
-      test_game.piece_control
+      test_game.piece_sensing
 
       expect(test_game.board_square('c4').pieces_in_range.include?('BBe6')).to eq true
       expect(test_game.board_square('c4').pieces_in_range.include?('BBe2')).to eq true
@@ -121,7 +121,7 @@ describe 'pieces should sense nearby pieces -' do
       expect(test_game.set_piece(:black, 'd5', Pawn)).to eq true
       expect(test_game.set_piece(:black, 'd3', Pawn)).to eq true
 
-      test_game.piece_control
+      test_game.piece_sensing
 
       expect(test_game.board_square('c4').pieces_in_range.include?('BPc5')).to eq true
       expect(test_game.board_square('c4').pieces_in_range.include?('BPc3')).to eq true
@@ -137,7 +137,7 @@ describe 'pieces should sense nearby pieces -' do
       test_game = ChessGame.new(:standard)
 
       # Mainly making sure this does not raise any errors
-      test_game.piece_control
+      test_game.piece_sensing
 
       expect(test_game.board_square('c1').pieces_in_range.include?('WPb2')).to eq true
       expect(test_game.board_square('b1').pieces_in_range.include?('WPd2')).to eq true
@@ -151,7 +151,7 @@ describe 'pieces should sense nearby pieces -' do
 
       expect(test_game.set_piece(:black, 'c5', King)).to eq true
 
-      test_game.piece_control
+      test_game.piece_sensing
 
       expect(test_game.board_square('c5').possible_moves.include?('c6')).to eq true
       expect(test_game.board_square('c5').possible_moves.include?('b5')).to eq true
@@ -166,7 +166,7 @@ describe 'pieces should sense nearby pieces -' do
       expect(test_game.set_piece(:black, 'd6', Pawn)).to eq true
       expect(test_game.set_piece(:black, 'a6', Pawn)).to eq true
 
-      test_game.piece_control
+      test_game.piece_sensing
 
       expect(test_game.game_state).to eq :check_white
 
