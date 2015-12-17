@@ -200,7 +200,7 @@ class ChessGame
       temp_col = from_col + col_step
 
       until temp_row == to_row && temp_col == to_col
-        if (0..7).include?(temp_row) && (0..7).include?(temp_col)
+        if board.in_bounds?(temp_row,temp_col)
 
           # if a piece is there
           if board.square(temp_row,temp_col)
@@ -261,8 +261,18 @@ class ChessGame
     if  !board.piece_exists?(test_row,test_col) ||
         board.piece_team(test_row,test_col) != board.piece_team(origin_piece.row,origin_piece.col)
       move_string = indices_to_chess_coords(test_row,test_col)
-      origin_piece.add_possible_move(move_string)
-      true
+      if origin_piece.class == Pawn
+        if  test_col == origin_piece.col && !board.piece_exists?(test_row,test_col) ||
+            test_col != origin_piece.col && board.piece_exists?(test_row,test_col)
+          origin_piece.add_possible_move(move_string)
+          true
+        else
+          false
+        end
+      else
+        origin_piece.add_possible_move(move_string)
+        true
+      end
     else
       false
     end
@@ -327,17 +337,28 @@ class ChessGame
   end
 
   def mate?(team)
+    # Iterate through each piece on the board
     board.each do |origin_piece|
+
+      # Only consider valid pieces which belong to the current player
       if !!origin_piece && origin_piece.team == current_player
+
+        # Consider all possible moves for that piece
         origin_piece.possible_moves.each do |possible_move|
+
+          # Retrieve the destination coordinates
           move_coords = chess_coords_to_indices(possible_move)
+
+          #Check if the move is safe (does not result in check)
           if safe_move?(team, origin_piece.row, origin_piece.col, move_coords[0], move_coords[1])
-            puts "#{indices_to_chess_coords(origin_piece.row, origin_piece.col)} to #{indices_to_chess_coords(move_coords[0], move_coords[1])}"
+            # If ANY move is safe, it is not a mate
             return false
           end
         end
       end
     end
+
+    # If NO moves are safe, it is a mate
     return true
   end
 

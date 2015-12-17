@@ -189,7 +189,6 @@ describe 'game check state -' do
     end
 
     it 'should detect a fools mate' do
-      pending "pawn possible move / piece in range detection needs fixing"
       test_game = ChessGame.new(:standard)
 
       expect(test_game.handle_selection('f2')).to eq :select_success

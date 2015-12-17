@@ -81,9 +81,9 @@ class Pawn < ChessPiece
 
   def controlled_squares
     if team == :white
-      [ [ [row+1,col+1] ], [ [row+1,col-1] ] ]
+      [ [ [row+1,col+1] ], [ [row+1,col] ], [ [row+1,col-1] ] ]
     else
-      [ [ [row-1,col+1] ], [ [row-1,col-1] ] ]
+      [ [ [row-1,col+1] ], [ [ [row-1,col] ] ], [ [row-1,col-1] ] ]
     end
   end
 end

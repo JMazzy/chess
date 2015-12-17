@@ -96,7 +96,7 @@ class ChessBoard
   end
 
   def in_bounds?(row,col)
-    if row >= 0 && row < @num_rows && col >= 0 && col < @num_columns
+    if (0...@num_rows).include?(row) && (0...@num_rows).include?(col)
       true
     else
       false
