@@ -223,6 +223,7 @@ class ChessGame
 
   # iterates through each square on the board, populating each piece's list of controlled squares
   def piece_sensing
+    # iterate through each piece on the board
     board.each do |origin_piece|
       if !!origin_piece
 
@@ -232,7 +233,7 @@ class ChessGame
 
         # iterate through each potential direction of movement
         origin_piece.controlled_squares.each do |direction_of_movement|
-          # iterate through coordinates in each direction_of_movement
+          # iterate through coordinates moving away from the piece
           direction_of_movement.each do |test_coords|
             if (  test_coords &&
                   board.in_bounds?(test_coords[0],test_coords[1]) )
@@ -244,7 +245,8 @@ class ChessGame
               # Call the possible move detection method
               detect_possible_move(origin_piece,test_row,test_col)
 
-              # Call the piece detection method and break if it succeeds
+              # Call the piece detection method and break if it succeeds;
+              # Once a piece is found, no more moves in that direction are valid
               break if detect_piece_in_range(origin_piece, test_row, test_col)
             end
           end
