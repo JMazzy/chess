@@ -67,10 +67,10 @@ class Pawn < ChessPiece
   end
 
   # Method called by the board when the piece is moved
-  def move(row, col)
+  def move(to_row, to_col)
     # "passantable" is the quality of being able to be captured "en passant"
     # set passantable, if passantable set un-passantable
-    if (row - self.row).abs == 2
+    if (to_row - self.row).abs == 2
       self.passantable = true
     elsif passantable
       self.passantable = false

@@ -243,11 +243,21 @@ class ChessGame
               test_col = test_coords[1]
 
               # Call the possible move detection method
-              detect_possible_move(origin_piece,test_row,test_col)
+              if detect_possible_move(origin_piece,test_row,test_col)
+                move_string = indices_to_chess_coords(test_row,test_col)
+                origin_piece.add_possible_move(move_string)
+              end
 
               # Call the piece detection method and break if it succeeds;
               # Once a piece is found, no more moves in that direction are valid
-              break if detect_piece_in_range(origin_piece, test_row, test_col)
+              if detect_piece_in_range(origin_piece, test_row, test_col)
+                # The string to add to pieces in range
+                piece_string = find_piece_string(test_row,test_col)
+
+                # Add the piece to the origin_pieces pieces in range
+                origin_piece.add_piece_in_range(piece_string)
+                break
+              end
             end
           end
         end
@@ -260,17 +270,14 @@ class ChessGame
   def detect_possible_move(origin_piece, test_row, test_col)
     if  !board.piece_exists?(test_row,test_col) ||
         board.piece_team(test_row,test_col) != board.piece_team(origin_piece.row,origin_piece.col)
-      move_string = indices_to_chess_coords(test_row,test_col)
       if origin_piece.class == Pawn
         if  test_col == origin_piece.col && !board.piece_exists?(test_row,test_col) ||
             test_col != origin_piece.col && board.piece_exists?(test_row,test_col)
-          origin_piece.add_possible_move(move_string)
           true
         else
           false
         end
       else
-        origin_piece.add_possible_move(move_string)
         true
       end
     else
@@ -280,13 +287,15 @@ class ChessGame
 
   def detect_piece_in_range(origin_piece, test_row, test_col)
     if board.piece_exists?(test_row,test_col)
-      # The string to add to pieces in range
-      piece_string = find_piece_string(test_row,test_col)
-
-      # Add the piece to the origin_pieces pieces in range
-      origin_piece.add_piece_in_range(piece_string)
-
-      true
+      if origin_piece.class == Pawn
+        if test_col != origin_piece.col
+          true
+        else
+          false
+        end
+      else
+        true
+      end
     else
       false
     end
@@ -362,6 +371,8 @@ class ChessGame
     return true
   end
 
+  # Returns a string identifying a piece
+  # format 'WRa1' (a white rook on column a, row 1)
   def find_piece_string(row,col)
     team_marker = find_team_marker(board.piece_team(row,col))
     piece_marker = find_piece_marker(board.piece_class(row,col))
@@ -369,6 +380,9 @@ class ChessGame
     "#{team_marker}#{piece_marker}#{coordinates}"
   end
 
+  # Finds a string representation of the piece
+  # 'N' is knight, '0' is an empty square
+  # All others use the capitalized first letter of their class name
   def find_piece_marker(piece_class)
     if piece_class == NilClass
       "0"
@@ -379,6 +393,10 @@ class ChessGame
     end
   end
 
+  # Finds a string representation of the piece
+  # 'W' is a white piece
+  # 'B' is a black piece
+  # '0' is an empty square
   def find_team_marker(piece_team)
     if piece_team == :none
       "0"
@@ -387,6 +405,8 @@ class ChessGame
     end
   end
 
+  # Distinguishes between kingside and queenside castling
+  # Returns the representation of this move or :illegal if move is illegal
   def castle_type(player, coord_string)
     if player == :white
       row = 0
@@ -415,6 +435,11 @@ class ChessGame
     end
   end
 
+  # Returns the pawn move type
+  # Possibilities are :normal, :passant, and :promote_[piece]
+  # A promotion piece type must be supplied upon moving a pawn to its final rank
+  # 'En passant' moves handled here automatically
+  # :capture is handled by standard move detection
   def pawn_move_type(player, coord_string, from_row, _from_col, to_row, to_col)
     if ((player == :white && from_row == 4) ||
       (player == :black && from_row == 3)) &&
@@ -440,7 +465,7 @@ class ChessGame
           :illegal
         end
       else
-        messages << 'ERROR: Must choose a promotion piece.'
+        messages << 'ERROR: Must choose a promotion piece (R, N, B, or Q).'
         :illegal
       end
     else

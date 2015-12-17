@@ -159,7 +159,19 @@ describe 'pieces should sense nearby pieces -' do
       expect(test_game.board_square('c5').possible_moves.include?('a1')).to eq false
     end
 
-    it 'safe moves should be detected correctly' do
+    it 'possible moves includes passant for pawn' do
+
+    end
+
+    it 'possible moves includes castling for king and rook' do
+
+    end
+
+    it 'possible moves includes pawn promotion' do
+      
+    end
+
+    it 'safe moves should be detected correctly - normal moves' do
       test_game = ChessGame.new(:blank)
 
       expect(test_game.set_piece(:white, 'c5', King)).to eq true
