@@ -274,12 +274,7 @@ class ChessGame
     if  !board.piece_exists?(test_row,test_col) ||
         board.piece_team(test_row,test_col) != board.piece_team(origin_piece.row,origin_piece.col)
       if origin_piece.class == Pawn
-        if  test_col == origin_piece.col && !board.piece_exists?(test_row,test_col) ||
-            test_col != origin_piece.col && board.piece_exists?(test_row,test_col)
-          true
-        else
-          false
-        end
+        pawn_possible_move?(origin_piece, test_row, test_col)
       else
         true
       end
@@ -288,23 +283,42 @@ class ChessGame
     end
   end
 
-  def pawn_attacks
-    if test_col != origin_piece.col
+  def pawn_possible_move?(origin_piece, test_row, test_col)
+    if  test_col == origin_piece.col && !board.piece_exists?(test_row,test_col) ||
+        test_col != origin_piece.col && board.piece_exists?(test_row,test_col)
       true
     else
       false
     end
   end
 
-  def piece_in_range?(origin_piece, test_row, test_col)
-    if board.piece_exists?(test_row,test_col)
-      if origin_piece.class == Pawn
-
-      else
+  def pawn_piece_in_range?(origin_piece, test_row, test_col)
+    if test_col != origin_piece.col
+      if board.piece_exists?(test_row,test_col)
         true
+      # else
+      #   # Check for passant conditions
+      #   if  board.piece_exists?(origin_piece.row, test_col-1) && board.square(origin_piece.row, test_col-1).passantable ||
+      #       board.piece_exists?(origin_piece.row, test_col+1) && board.square(origin_piece.row, test_col+1).passantable
+      #     true
+      #   else
+      #     false
+      #   end
       end
     else
       false
+    end
+  end
+
+  def piece_in_range?(origin_piece, test_row, test_col)
+    if origin_piece.class == Pawn
+      pawn_piece_in_range?(origin_piece, test_row, test_col)
+    else
+      if board.piece_exists?(test_row,test_col)
+        true
+      else
+        false
+      end
     end
   end
 
