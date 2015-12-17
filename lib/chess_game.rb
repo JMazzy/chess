@@ -224,53 +224,60 @@ class ChessGame
   # iterates through each square on the board, populating each piece's list of controlled squares
   def piece_control
     board.each do |origin_piece|
-      if origin_piece
+      if !!origin_piece
 
+        # clear the piece's sensing data before populating
         origin_piece.clear_possible_moves
         origin_piece.clear_pieces_in_range
 
-        origin_piece.pieces_in_range = []
-
-        control = origin_piece.controlled_squares
-
         # iterate through each potential direction of movement
-        control.each do |direction|
-          # no piece found in that direction yet
-          piece_found_in_range = false
-          # iterate through coordinates in each direction
-          direction.each do |test_coords|
+        origin_piece.controlled_squares.each do |direction_of_movement|
+          # iterate through coordinates in each direction_of_movement
+          direction_of_movement.each do |test_coords|
             if (  test_coords &&
-                  test_coords[0] &&
-                  test_coords[1] &&
                   board.in_bounds?(test_coords[0],test_coords[1]) )
 
+              # set row and column variables for convenience and clarity
               test_row = test_coords[0]
               test_col = test_coords[1]
 
-              if  !piece_found_in_range
-                if  !board.piece_exists?(test_row,test_col) ||
-                    board.piece_team(test_row,test_col) != board.piece_team(origin_piece.row,origin_piece.col)
-                  move_string = indices_to_chess_coords(test_coords[0],test_coords[1])
-                  origin_piece.add_possible_move(move_string)
-                end
+              # Call the possible move detection method
+              detect_possible_move(origin_piece,test_row,test_col)
 
-                if board.piece_exists?(test_row,test_col)
-                  # The string to add to pieces in range
-                  piece_string = find_piece_string(test_row,test_col)
-
-                  # Add the piece to the origin_pieces pieces in range
-                  origin_piece.add_piece_in_range(piece_string)
-
-                  # piece found; no further pieces can be in range in that direction
-                  piece_found_in_range = true
-                end
-              end
+              # Call the piece detection method and break if it succeeds
+              break if detect_piece_in_range(origin_piece, test_row, test_col)
             end
           end
         end
       end
     end
     check_for_check(current_player)
+  end
+
+  # Determines whether the origin piece can complete a move to the given coordinates
+  def detect_possible_move(origin_piece, test_row, test_col)
+    if  !board.piece_exists?(test_row,test_col) ||
+        board.piece_team(test_row,test_col) != board.piece_team(origin_piece.row,origin_piece.col)
+      move_string = indices_to_chess_coords(test_row,test_col)
+      origin_piece.add_possible_move(move_string)
+      true
+    else
+      false
+    end
+  end
+
+  def detect_piece_in_range(origin_piece, test_row, test_col)
+    if board.piece_exists?(test_row,test_col)
+      # The string to add to pieces in range
+      piece_string = find_piece_string(test_row,test_col)
+
+      # Add the piece to the origin_pieces pieces in range
+      origin_piece.add_piece_in_range(piece_string)
+
+      true
+    else
+      false
+    end
   end
 
   def check_for_check(team)
