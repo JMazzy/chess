@@ -13,9 +13,11 @@ describe 'game check state -' do
       # Game should be playing, not in check
       expect(test_game.game_state).to eq :playing
 
+      test_game.switch_player
+
       # Black pawn moves so white king is in range
-      expect(test_game.handle_selection('d5')).to eq true
-      expect(test_game.handle_moving('d4')).to eq true
+      expect(test_game.handle_selection('d5')).to eq :select_success
+      expect(test_game.handle_moving('d4')).to eq :move_success
 
       test_game.piece_sensing
 
@@ -72,8 +74,8 @@ describe 'game check state -' do
       expect(test_game.game_state).to eq :check_white
 
       # Rook moves between King and Bishop
-      expect(test_game.select(:white, 'd3')).to eq true
-      expect(test_game.move(:white, 'd5')).to eq true
+      expect(test_game.handle_selection('d3')).to eq :select_success
+      expect(test_game.handle_moving('d5')).to eq :move_success
       expect(test_game.board_square('d3').class).to eq NilClass
       expect(test_game.board_square('d5').class).to eq Rook
 
