@@ -296,18 +296,26 @@ class ChessGame
     if test_col != origin_piece.col
       if board.piece_exists?(test_row,test_col)
         true
-      # else
-      #   # Check for passant conditions
-      #   if  board.piece_exists?(origin_piece.row, test_col-1) && board.square(origin_piece.row, test_col-1).passantable ||
-      #       board.piece_exists?(origin_piece.row, test_col+1) && board.square(origin_piece.row, test_col+1).passantable
-      #     true
-      #   else
-      #     false
-      #   end
+      else
+        # Check for passant conditions
+        if passant_conditions?(origin_piece,test_row,test_col)
+          true
+        else
+          false
+        end
       end
     else
       false
     end
+  end
+
+  def passant_conditions?(origin_piece,test_row,test_col)
+    board.piece_exists?(origin_piece.row, test_col-1) &&
+    board.piece_class(origin_piece.row, test_col-1) == Pawn &&
+    board.square(origin_piece.row, test_col-1).passantable ||
+    board.piece_exists?(origin_piece.row, test_col+1) &&
+    board.piece_class(origin_piece.row, test_col+1) == Pawn &&
+    board.square(origin_piece.row, test_col+1).passantable
   end
 
   def piece_in_range?(origin_piece, test_row, test_col)
@@ -395,7 +403,11 @@ class ChessGame
   # Returns a string identifying a piece
   # format 'WRa1' (a white rook on column a, row 1)
   def find_piece_string(row,col)
-    team_marker = find_team_marker(board.piece_team(row,col))
+    if board.piece_exists?(row,col)
+      team_marker = find_team_marker(board.piece_team(row,col))
+    else
+      team_marker = :none
+    end
     piece_marker = find_piece_marker(board.piece_class(row,col))
     coordinates = indices_to_chess_coords(row,col)
     "#{team_marker}#{piece_marker}#{coordinates}"
