@@ -365,7 +365,7 @@ class ChessGame
       result = true
     end
 
-    # switch back to the backup board
+    # reverse move and switch back to the backup board
     board.move_piece(to_row,to_col,from_row,from_col)
     self.board = backup_board
     piece_sensing
@@ -406,7 +406,7 @@ class ChessGame
     if board.piece_exists?(row,col)
       team_marker = find_team_marker(board.piece_team(row,col))
     else
-      team_marker = :none
+      team_marker = find_team_marker(:none)
     end
     piece_marker = find_piece_marker(board.piece_class(row,col))
     coordinates = indices_to_chess_coords(row,col)
