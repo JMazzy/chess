@@ -143,7 +143,7 @@ describe "pieces should move correctly -" do
   end
 
   describe "rook -" do
-    it "moves up/down/left/right" do
+    it "moves orthogonally" do
       test_game = ChessGame.new(:blank)
 
       # Place the piece
@@ -326,7 +326,7 @@ describe "pieces should move correctly -" do
       expect(test_game.move(:white, "f1")). to eq true
     end
 
-    it "does not move up/down/left/right" do
+    it "does not move orthogonally" do
       test_game = ChessGame.new(:blank)
 
       # Place the pieces
@@ -385,7 +385,7 @@ describe "pieces should move correctly -" do
       expect(test_game.board_square("d1").class).to eq Queen
     end
 
-    it "moves up/down/left/right" do
+    it "moves orthogonally" do
       test_game = ChessGame.new(:blank)
 
       # Place the piece
@@ -471,7 +471,7 @@ describe "pieces should move correctly -" do
       expect(test_game.board_square("e1").class).to eq King
     end
 
-    it "moves up/down/left/right one space" do
+    it "moves orthogonally one space" do
       test_game = ChessGame.new(:blank)
 
       # Place the pieces

@@ -480,8 +480,8 @@ class ChessGame
       :passant
     elsif (player == :white && from_row == 6 && to_row == 7) ||
           (player == :black && from_row == 1 && to_row == 0)
-
-      if m = coord_string.match(/(\w)(\d)(R|N|B|Q)/)
+          
+      if m = coord_string.match(/(\w)(\d)(R|K|N|B|Q)/)
         case m[3]
         when 'R'
           :promote_rook

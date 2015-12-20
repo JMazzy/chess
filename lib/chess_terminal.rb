@@ -15,7 +15,7 @@ class Chess
   def ask_selection
     puts "It is #{game.current_player.to_s.capitalize}'s turn."
     print "Select piece to move: "
-    select_string = gets.chomp.downcase
+    select_string = gets.chomp
     if select_string.match(/\w\d/) || select_string[0..2] == "0-0" || select_string == "resign"
       return select_string
     else
@@ -25,7 +25,7 @@ class Chess
 
   def ask_move
     print "Move #{game.board.piece_class(game.selected[0],game.selected[1])} to: "
-    move_string = gets.chomp.downcase
+    move_string = gets.chomp
     if move_string.match(/\w\d/) || move_string[0..2] == "0-0" || move_string == "resign"
       return move_string
     else
