@@ -12,11 +12,27 @@ class Chess
     self.game = ChessGame.new
   end
 
+  def ask_draw
+    puts "Does #{game.current_player.to_s.capitalize} accept a draw?"
+    print "Respond y for yes, n for no: "
+    answer_string = gets.chomp
+    if answer_string.to_s.downcase[0] == "y"
+      result = true
+    else
+      result = false
+    end
+    game.answer_draw(result)
+    result
+  end
+
   def ask_selection
     puts "It is #{game.current_player.to_s.capitalize}'s turn."
     print "Select piece to move: "
     select_string = gets.chomp
-    if select_string.match(/\w\d/) || select_string[0..2] == "0-0" || select_string == "resign"
+    if  select_string.match(/\w\d/) ||
+        select_string[0..2] == "0-0" ||
+        select_string == "resign" ||
+        select_string == "draw"
       return select_string
     else
       ask_selection
@@ -26,7 +42,10 @@ class Chess
   def ask_move
     print "Move #{game.board.piece_class(game.selected[0],game.selected[1])} to: "
     move_string = gets.chomp
-    if move_string.match(/\w\d/) || move_string[0..2] == "0-0" || move_string == "resign"
+    if  move_string.match(/\w\d/) ||
+        move_string[0..2] == "0-0" ||
+        move_string == "resign" ||
+        select_string == "draw"
       return move_string
     else
       ask_move
@@ -34,11 +53,11 @@ class Chess
   end
 
   def update
-    if game.selecting
+    if game.input_mode == :selecting
       # if selecting, ask the player for a selection
       selection = ask_selection
       game.handle_selection(selection)
-    elsif game.moving
+    elsif game.input_mode == :moving
       # if moving, ask for a move
       move = ask_move
       print "Confirm move? (y/n): "
@@ -46,10 +65,11 @@ class Chess
       if confirmation == "y"
         game.handle_moving(move)
       else
-        game.revert
+        game.input_mode = :selecting
       end
+    elsif game.input_mode == :draw_offered
+      ask_draw
     end
-    game.update
   end
 
   #
@@ -117,12 +137,13 @@ class Chess
   end
 
   def game_loop
+    draw(game.board)
     loop do
       update
       draw(game.board)
-      if game.game_state == :white_win ||
-        game.game_state == :black_win ||
-        game.game_state == :draw
+      if  game.game_state == :white_win ||
+          game.game_state == :black_win ||
+          game.game_state == :draw
         break
       end
     end

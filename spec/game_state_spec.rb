@@ -260,6 +260,39 @@ describe 'game check state -' do
     end
   end
 
+  describe 'agreed draw -' do
+    it 'should make the game end in a draw' do
+      test_game = ChessGame.new(:blank)
+      expect(test_game.current_player).to eq :white
+      test_game.offer_draw(:white)
+      test_game.answer_draw(true)
+      expect(test_game.game_state).to eq :draw
+
+      test_game = ChessGame.new(:blank)
+      test_game.current_player = :black
+      test_game.offer_draw(:black)
+      expect(test_game.current_player).to eq :white
+      test_game.answer_draw(true)
+      expect(test_game.game_state).to eq :draw
+    end
+
+    it 'refusing a draw should put the move back to the original player' do
+      test_game = ChessGame.new(:blank)
+      expect(test_game.current_player).to eq :white
+      test_game.offer_draw(:white)
+      expect(test_game.current_player).to eq :black
+      test_game.answer_draw(false)
+      expect(test_game.current_player).to eq :white
+
+      test_game = ChessGame.new(:blank)
+      test_game.current_player = :black
+      test_game.offer_draw(:black)
+      expect(test_game.current_player).to eq :white
+      test_game.answer_draw(false)
+      expect(test_game.current_player).to eq :black
+    end
+  end
+
   describe 'game ending states -' do
     it 'a victory by white should register correctly' do
       test_game = ChessGame.new(:blank)

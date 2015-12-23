@@ -12,8 +12,7 @@ class ChessGame
   attr_accessor :board,
                 :selected,
                 :current_player,
-                :selecting,
-                :moving,
+                :input_mode,
                 :game_state,
                 :messages
 
@@ -26,19 +25,16 @@ class ChessGame
 
     self.game_state = :playing
 
-    self.messages = ["BEGIN: It's on!"]
+    self.messages = ["BEGIN: The game has begun."]
 
     self.current_player = :white
-    self.selecting = false
-    self.moving = false
+    self.input_mode = :selecting
   end
 
   def handle_selection(selection)
     if select(current_player,selection)
-      # turn selecting off
-      self.selecting = false
-      # turn moving on
-      self.moving = true
+      # switch to moving
+      self.input_mode = :moving
       return :select_success
     else
       return :select_fail
@@ -49,17 +45,16 @@ class ChessGame
     # complete the move
     if move(current_player,move)
       # if move is valid
-      # moving off
-      self.moving = false
-      self.selecting = true
 
       # switch players
       switch_player
       return :move_success
     else
-      revert
       return :move_fail
     end
+
+    # switch back to selecting
+    self.input_mode = :selecting
   end
 
   def handle_mate
@@ -69,18 +64,6 @@ class ChessGame
       else
         stalemate(current_player)
       end
-    end
-  end
-
-  def revert
-    self.selecting = false
-    self.moving = false
-  end
-
-  def update
-    if selecting == moving
-      self.selecting = true
-      self.moving = false
     end
   end
 
@@ -150,8 +133,11 @@ class ChessGame
       else
         false
       end
-    elsif coord_string == "resign"
+    elsif coord_string.downcase == "resign"
       resign(player)
+      false
+    elsif coord_string.downcase == "draw"
+      offer_draw(player)
       false
     else
       messages << 'ERROR: Invalid selection!'
@@ -480,7 +466,7 @@ class ChessGame
       :passant
     elsif (player == :white && from_row == 6 && to_row == 7) ||
           (player == :black && from_row == 1 && to_row == 0)
-          
+
       if m = coord_string.match(/(\w)(\d)(R|K|N|B|Q)/)
         case m[3]
         when 'R'
@@ -565,6 +551,9 @@ class ChessGame
     elsif coord_string == "resign"
       resign(player)
       :resignation
+    elsif coord_string.downcase == "draw"
+      offer_draw(player)
+      :offer_draw
     else
       messages << 'ERROR: Bad move input!'
       :illegal
@@ -578,7 +567,9 @@ class ChessGame
 
     move_type = find_move_type(player, coord_string)
 
-    if move_type == :illegal || move_type == :resignation
+    if  move_type == :illegal ||
+        move_type == :resignation ||
+        move_type == :offer_draw
       false
     else
       if move_type.to_s[0..5] == 'castle'
@@ -726,18 +717,18 @@ class ChessGame
   end
 
   def stalemate(player)
-    draw
     messages << "STALEMATE: #{player.capitalize} is in a stalemate."
+    draw
   end
 
   def checkmate(player)
+    messages << "CHECKMATE: #{player.capitalize} won in a checkmate!"
+
     if player == :white
       declare_victory(:black)
     else
       declare_victory(:white)
     end
-
-    messages << "CHECKMATE: #{player.capitalize} won in a checkmate!"
   end
 
   def declare_victory(player)
@@ -745,8 +736,25 @@ class ChessGame
     messages << "WIN: The player with the #{player.capitalize} pieces has won!"
   end
 
+  def offer_draw(player)
+    self.input_mode = :draw_offered
+    messages << "DRAW OFFERED: #{player.capitalize} has suggested a draw."
+    switch_player
+  end
+
+  def answer_draw(draw_accepted)
+    if draw_accepted
+      messages << "DRAW ACCEPTED: Players have agreed to a draw."
+      draw
+    else
+      messages << "DRAW REJECTED: No agreement on ending in a draw."
+      self.input_mode = :selecting
+      switch_player
+    end
+  end
+
   def draw
-    self.game_state = :draw
     messages << "DRAW: The game has ended in a draw."
+    self.game_state = :draw
   end
 end
