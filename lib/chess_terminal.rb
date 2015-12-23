@@ -120,13 +120,13 @@ class Chess
     loop do
       update
       draw(game.board)
-      if game.game_state == :win_white ||
-        game.game_state == :win_black ||
+      if game.game_state == :white_win ||
+        game.game_state == :black_win ||
         game.game_state == :draw
         break
       end
     end
-    exit
+    return 0
   end
 end
 
