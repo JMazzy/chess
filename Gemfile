@@ -1,8 +1,11 @@
 source 'https://rubygems.org'
 
-gem 'rspec'
-gem 'colorize'
-gem 'sinatra'
-gem 'sass'
-gem 'tilt'
-gem 'erubis'
+gem 'sinatra', '1.3.1'
+gem 'haml', '3.1.4'
+gem 'ajax'
+
+group :test do
+  gem 'rake', '0.9.2.2'
+  gem 'rack-test', '0.6.1'
+  gem 'rspec', '2.7.0'
+end

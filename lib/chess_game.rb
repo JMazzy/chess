@@ -1,3 +1,5 @@
+require 'json'
+
 require_relative './pawn.rb'
 require_relative './king.rb'
 require_relative './queen.rb'
@@ -31,14 +33,22 @@ class ChessGame
     self.input_mode = :selecting
   end
 
+  def update
+    write_to_file
+  end
+
   def handle_selection(selection)
     if select(current_player,selection)
       # switch to moving
       self.input_mode = :moving
-      return :select_success
+      result = :select_success
     else
-      return :select_fail
+      result = :select_fail
     end
+
+    update()
+
+    return result
   end
 
   def handle_moving(move)
@@ -48,13 +58,21 @@ class ChessGame
 
       # switch players
       switch_player
-      return :move_success
+
+      # success
+      result = :move_success
     else
-      return :move_fail
+      # failure
+      result = :move_fail
     end
 
     # switch back to selecting
     self.input_mode = :selecting
+
+    # update the game file
+    update()
+
+    return result
   end
 
   def handle_mate
@@ -734,6 +752,7 @@ class ChessGame
   def declare_victory(player)
     self.game_state = "#{player}_win".to_sym
     messages << "WIN: The player with the #{player.capitalize} pieces has won!"
+    update
   end
 
   def offer_draw(player)
@@ -756,5 +775,31 @@ class ChessGame
   def draw
     messages << "DRAW: The game has ended in a draw."
     self.game_state = :draw
+    update
+  end
+
+  def to_json
+    output = {  :board => [],
+                :current_player => current_player.to_s,
+                :input_mode => input_mode.to_s,
+                :selected => selected,
+                :game_state => game_state.to_s,
+                :messages => messages}
+    board.board.each_index do |row|
+      output[:board][row] = []
+      board.board[row].each_index do |col|
+        output[:board][row][col] = find_piece_string(row,col)[0..1]
+      end
+    end
+
+    output.to_json
+  end
+
+  def write_to_file
+    path_name = File.absolute_path("public/games/board.json")
+    file = File.open(path_name, 'w')
+    file.rewind
+    file.write(to_json)
+    file.close
   end
 end

@@ -206,7 +206,7 @@ describe 'game check state -' do
       expect(test_game.game_state).to eq :black_win
     end
 
-    it 'checkmate should end the game and declare a winner' do
+    it 'should end the game' do
       test_game = ChessGame.new(:blank)
       test_game.checkmate(:white)
       expect(test_game.game_state).to eq :black_win

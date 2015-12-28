@@ -12,6 +12,15 @@ class Chess
     self.game = ChessGame.new
   end
 
+  def instructions
+    puts "Instructions: "
+    puts 'Moves are entered in the format "a1" (column a, row 1).'
+    puts 'To promote a pawn when legal, append R, N, B, or Q to the move.'
+    puts 'To castle, enter "0-0" for kingside or "0-0-0" for queenside.'
+    puts 'To resign, enter "resign".'
+    puts 'To propose a draw, enter "draw".'
+  end
+
   def ask_draw
     puts "Does #{game.current_player.to_s.capitalize} accept a draw?"
     print "Respond y for yes, n for no: "
@@ -40,12 +49,13 @@ class Chess
   end
 
   def ask_move
-    print "Move #{game.board.piece_class(game.selected[0],game.selected[1])} to: "
+    puts game.selected.class
+    print "Move #{game.board.piece_class(game.selected[0], game.selected[1])} to: "
     move_string = gets.chomp
     if  move_string.match(/\w\d/) ||
         move_string[0..2] == "0-0" ||
         move_string == "resign" ||
-        select_string == "draw"
+        move_string == "draw"
       return move_string
     else
       ask_move
@@ -137,6 +147,7 @@ class Chess
   end
 
   def game_loop
+    instructions
     draw(game.board)
     loop do
       update
