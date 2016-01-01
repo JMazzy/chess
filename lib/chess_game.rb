@@ -31,6 +31,8 @@ class ChessGame
 
     self.current_player = :white
     self.input_mode = :selecting
+
+    update
   end
 
   def update

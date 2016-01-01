@@ -4,14 +4,14 @@ var ctx = c.getContext("2d");
 var width = c.width;
 var height = c.height;
 
-var square_width = width / 8;
-var square_height = height / 8;
+var square_width = Math.round(width / 8);
+var square_height = Math.round(height / 8);
 
 var texture_size = 64;
 
 var img = document.getElementById('chess-pieces');
 var tile = document.getElementById('tiles');
-var board, selected;
+var board, selected, input_mode;
 
 // shim layer with setTimeout fallback
 window.requestAnimFrame = (function(){
@@ -37,17 +37,26 @@ window.requestAnimFrame = (function(){
 // place the rAF *before* the render() to assure as close to
 // 60fps with the setTimeout fallback.
 
-function update() {
+function update_game_data() {
   var jqxhr = $.getJSON( "games/board.json", function() {
   })
     .done(function(data) {
       board = data.board;
       selected = data.selected;
+      input_mode = data.input_mode;
     })
     .fail(function() {
     })
     .always(function() {
     });
+}
+
+function update() {
+  update_game_data()
+}
+
+function handle_input() {
+
 }
 
 function render() {
@@ -102,11 +111,29 @@ function render() {
 function getMousePos(canvas, evt) {
   var rect = canvas.getBoundingClientRect();
   return {
-    x: evt.clientX - rect.left,
-    y: evt.clientY - rect.top
+    x: Math.round((evt.clientX-rect.left)/(rect.right-rect.left)*canvas.width),
+    y: Math.round((evt.clientY-rect.top)/(rect.bottom-rect.top)*canvas.height)
   };
 }
 
-c.addEventListener('mousemove', function(evt) {
-  var mousePos = getMousePos(canvas, evt);
-}, false);
+function indices_to_chess_coords(row, col) {
+  columns = ['a','b','c','d','e','f','g','h'];
+  return '' + ( columns[col] ) + ( row + 1 );
+}
+
+c.addEventListener('mousedown', function(evt) {
+  var mousePos = getMousePos(c, evt);
+  var mouseSquare = {
+    col: Math.floor(mousePos.x / square_width),
+    row: 7-Math.floor(mousePos.y / square_height)
+  };
+
+  var squareCoordString = indices_to_chess_coords(mouseSquare.row, mouseSquare.col);
+
+  console.log(squareCoordString)
+
+  $.post("",
+  {
+    "squareClicked": squareCoordString
+  });
+}, false)

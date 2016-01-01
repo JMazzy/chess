@@ -13,18 +13,6 @@
     .hidden
       %img{:id => 'chess-pieces', :src => "img/chess-sprites-64x64.png" }/
       %img{:id => 'tiles', :src => "img/tiles.png"}/
-      -# %img{:id => "BP", :src => "img/black-pawn.png", :height => "70", :width => "70" }/
-      -# %img{:id => "BR", :src => "img/black-rook.png", :height => "70", :width => "70" }/
-      -# %img{:id => "BN", :src => "img/black-knight.png", :height => "70", :width => "70" }/
-      -# %img{:id => "BB", :src => "img/black-bishop.png", :height => "70", :width => "70" }/
-      -# %img{:id => "BQ", :src => "img/black-queen.png", :height => "70", :width => "70" }/
-      -# %img{:id => "BK", :src => "img/black-king.png", :height => "70", :width => "70" }/
-      -# %img{:id => "WP", :src => "img/white-pawn.png", :height => "70", :width => "70" }/
-      -# %img{:id => "WR", :src => "img/white-rook.png", :height => "70", :width => "70" }/
-      -# %img{:id => "WN", :src => "img/white-knight.png", :height => "70", :width => "70" }/
-      -# %img{:id => "WB", :src => "img/white-bishop.png", :height => "70", :width => "70" }/
-      -# %img{:id => "WQ", :src => "img/white-queen.png", :height => "70", :width => "70" }/
-      -# %img{:id => "WK", :src => "img/white-king.png", :height => "70", :width => "70" }/
 
   %body
     %nav.navbar.navbar-default
@@ -87,9 +75,13 @@
     / /.navbar-collapse
     .container
       .row
-        .col-xs-12
+        .col-lg-6
           %canvas{ :id => "mycanvas", :width => "512", :height => "512" }
-        / /col-xs-12
+        / /col-xs-6
+        .col-lg-6
+          %h2 Moves
+          %p 
+        / /col-xs-6
       / /row
     / /container
     %footer.footer
