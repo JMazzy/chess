@@ -13,7 +13,6 @@
     .hidden
       %img{:id => 'chess-pieces', :src => "img/chess-sprites-64x64.png" }/
       %img{:id => 'tiles', :src => "img/tiles.png"}/
-
   %body
     %nav.navbar.navbar-default
       .container-fluid
@@ -80,7 +79,9 @@
         / /col-xs-6
         .col-lg-6
           %h2 Moves
-          %p 
+          .move-list{ :id => "move-list" }
+            %p this text should be replaced with the move list
+          / /move-list
         / /col-xs-6
       / /row
     / /container

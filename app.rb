@@ -16,11 +16,3 @@ post '/' do
     game.handle_moving(data.to_s)
   end
 end
-
-post '/messages' do
-  message_string = ''
-  game.messages.each do |message|
-    message_string << message << "\n"
-  end
-  return message_string
-end

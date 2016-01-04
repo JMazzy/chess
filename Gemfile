@@ -1,11 +1,11 @@
 source 'https://rubygems.org'
 
-gem 'sinatra', '1.3.1'
-gem 'haml', '3.1.4'
+gem 'sinatra'
+gem 'haml'
 gem 'ajax'
 
-group :test do
-  gem 'rake', '0.9.2.2'
-  gem 'rack-test', '0.6.1'
-  gem 'rspec', '2.7.0'
+group :test, :development do
+  gem 'rake'
+  gem 'rack-test'
+  gem 'rspec', '2.14'
 end

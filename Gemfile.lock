@@ -4,7 +4,7 @@ GEM
     ajax (1.1.7)
       json
       rack
-    diff-lcs (1.1.3)
+    diff-lcs (1.2.5)
     haml (3.1.4)
     json (1.8.3)
     rack (1.3.5)
@@ -13,14 +13,14 @@ GEM
     rack-test (0.6.1)
       rack (>= 1.0)
     rake (0.9.2.2)
-    rspec (2.7.0)
-      rspec-core (~> 2.7.0)
-      rspec-expectations (~> 2.7.0)
-      rspec-mocks (~> 2.7.0)
-    rspec-core (2.7.1)
-    rspec-expectations (2.7.0)
-      diff-lcs (~> 1.1.2)
-    rspec-mocks (2.7.0)
+    rspec (2.14.0)
+      rspec-core (~> 2.14.0)
+      rspec-expectations (~> 2.14.0)
+      rspec-mocks (~> 2.14.0)
+    rspec-core (2.14.8)
+    rspec-expectations (2.14.5)
+      diff-lcs (>= 1.1.3, < 2.0)
+    rspec-mocks (2.14.6)
     sinatra (1.3.1)
       rack (~> 1.3, >= 1.3.4)
       rack-protection (~> 1.1, >= 1.1.2)
@@ -32,11 +32,11 @@ PLATFORMS
 
 DEPENDENCIES
   ajax
-  haml (= 3.1.4)
-  rack-test (= 0.6.1)
-  rake (= 0.9.2.2)
-  rspec (= 2.7.0)
-  sinatra (= 1.3.1)
+  haml
+  rack-test
+  rake
+  rspec (= 2.14)
+  sinatra
 
 BUNDLED WITH
    1.11.2

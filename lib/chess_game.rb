@@ -32,11 +32,7 @@ class ChessGame
     self.current_player = :white
     self.input_mode = :selecting
 
-    update
-  end
-
-  def update
-    write_to_file
+    update()
   end
 
   def handle_selection(selection)
@@ -94,9 +90,9 @@ class ChessGame
       self.current_player = :white
     end
 
-    piece_sensing
+    piece_sensing()
 
-    handle_mate
+    handle_mate()
   end
 
   def board_square(coord_string)
@@ -117,27 +113,6 @@ class ChessGame
       return true
     else
       return false
-    end
-  end
-
-  def select_ok?(player, row, col)
-    if board.in_bounds?(row,col)
-      if board.piece_exists?(row,col)
-        # Make sure the piece belongs to the current player
-        if board.square(row,col).team == player
-          messages << "SELECTION: #{player.to_s.capitalize} selected #{board.square(row,col).class} at #{indices_to_chess_coords(row, col)}"
-          true
-        else
-          messages << "ERROR: Cannot select opponent's piece!"
-          false
-        end
-      else
-        messages << 'ERROR: No piece on that square!'
-        false
-      end
-    else
-      messages << 'ERROR: Selection is off the board!'
-      false
     end
   end
 
@@ -167,64 +142,6 @@ class ChessGame
 
   def unselect
     self.selected = nil if selected
-  end
-
-  # Takes a standard chess coordinate string and returns array indices
-  def chess_coords_to_indices(coord_string)
-    if m = coord_string.match(/(\w)(\d)/)
-      col = m[1]
-      row = m[2]
-
-      columns = { a: 0, b: 1, c: 2, d: 3, e: 4, f: 5, g: 6, h: 7 }
-
-      if ('a'..'h').include?(col) && (1..8).include?(row.to_i)
-        [row.to_i - 1, columns[col.to_sym]]
-      else
-        false
-      end
-    else
-      false
-    end
-  end
-
-  def indices_to_chess_coords(row, col)
-    columns = %w(a b c d e f g h)
-    "#{columns[col]}#{row + 1}"
-  end
-
-  def path_clear?(from_row, from_col, to_row, to_col)
-    # The path is always clear for knights
-    if board.square(from_row,from_col).class == Knight
-      return true
-    else
-      # Check for pieces on intervening squares
-      # The single step corresponding to the move (-1, 0, 1)
-      row_step = to_row <=> from_row
-      col_step = to_col <=> from_col
-
-      temp_row = from_row + row_step
-      temp_col = from_col + col_step
-
-      until temp_row == to_row && temp_col == to_col
-        if board.in_bounds?(temp_row,temp_col)
-
-          # if a piece is there
-          if board.square(temp_row,temp_col)
-            messages << "PATH_CLEAR_ERROR: Path blocked!"
-            return false
-          else
-            temp_row += row_step
-            temp_col += col_step
-          end
-        else
-          messages << "PATH_CLEAR_ERROR: Path goes out of bounds!"
-          return false
-        end
-      end
-
-      # If no piece is encountered along the move path, return true
-      return true
-    end
   end
 
   # iterates through each square on the board, populating each piece's list of controlled squares
@@ -273,6 +190,196 @@ class ChessGame
       end
     end
     check_for_check(current_player)
+  end
+
+  # Returns true if that move does not result in check
+  def safe_move?( team, from_row, from_col, to_row, to_col)
+    backup_board = Marshal.load(Marshal.dump(board))
+
+    # try the move
+    board.move_piece(from_row,from_col,to_row,to_col)
+    piece_sensing
+
+    if game_state == "check_#{team}".to_sym
+      result = false
+    else
+      result = true
+    end
+
+    # reverse move and switch back to the backup board
+    board.move_piece(to_row,to_col,from_row,from_col)
+    self.board = backup_board
+    piece_sensing
+
+    # Return the result of this check
+    result
+  end
+
+  def move(player, coord_string)
+    from_row = selected[0]
+    from_col = selected[1]
+    from_piece = board.square(from_row,from_col)
+
+    move_type = find_move_type(player, coord_string)
+
+    if  move_type == :illegal ||
+        move_type == :resignation ||
+        move_type == :offer_draw
+      false
+    else
+      if move_type.to_s[0..5] == 'castle'
+        if move_type == :castle_ks
+          to_col = 6
+        elsif move_type == :castle_qs
+          to_col = 2
+        end
+
+        if player == :white
+          to_row = 0
+        else
+          to_row = 7
+        end
+      else
+        coords = chess_coords_to_indices(coord_string)
+        to_row = coords[0]
+        to_col = coords[1]
+      end
+
+      if from_piece.move_ok?(to_row, to_col, move_type)
+        # convert the coordinates to array indices
+        if move_type == :normal
+          normal_move(player, coord_string, from_row, from_col, to_row, to_col)
+        elsif move_type == :capture
+          normal_move(player, coord_string, from_row, from_col, to_row, to_col)
+        elsif move_type == :passant
+          passant_move(player, from_row, from_col, to_row, to_col)
+        elsif move_type == :castle_ks || move_type == :castle_qs
+          castle_move(player, coord_string)
+        elsif move_type.to_s[0..6] == 'promote'
+          promote_move(player, to_col, move_type)
+        end
+        unselect
+        true
+      else
+        # If it is an illegal move
+        messages << 'ERROR: Illegal move for piece.'
+        false
+      end
+    end
+  end
+
+  def resign(player)
+    messages << "RESIGNATION: The player with the #{player.capitalize} pieces has resigned!"
+
+    if player == :white
+      declare_victory(:black)
+    else
+      declare_victory(:white)
+    end
+  end
+
+  def stalemate(player)
+    messages << "STALEMATE: #{player.capitalize} is in a stalemate."
+    draw
+  end
+
+  def checkmate(player)
+    messages << "CHECKMATE: #{player.capitalize} won in a checkmate!"
+
+    if player == :white
+      declare_victory(:black)
+    else
+      declare_victory(:white)
+    end
+  end
+
+  def declare_victory(player)
+    self.game_state = "#{player}_win".to_sym
+    messages << "WIN: The player with the #{player.capitalize} pieces has won!"
+    update
+  end
+
+  def offer_draw(player)
+    self.input_mode = :draw_offered
+    messages << "DRAW OFFERED: #{player.capitalize} has suggested a draw."
+    switch_player
+  end
+
+  def answer_draw(draw_accepted)
+    if draw_accepted
+      messages << "DRAW ACCEPTED: Players have agreed to a draw."
+      draw
+    else
+      messages << "DRAW REJECTED: No agreement on ending in a draw."
+      self.input_mode = :selecting
+      switch_player
+    end
+  end
+
+  def draw
+    messages << "DRAW: The game has ended in a draw."
+    self.game_state = :draw
+    update
+  end
+
+  #############################################################
+  # Private Methods
+  private
+
+  def select_ok?(player, row, col)
+    if board.in_bounds?(row,col)
+      if board.piece_exists?(row,col)
+        # Make sure the piece belongs to the current player
+        if board.square(row,col).team == player
+          messages << "SELECTION: #{player.to_s.capitalize} selected #{board.square(row,col).class} at #{indices_to_chess_coords(row, col)}"
+          true
+        else
+          messages << "ERROR: Cannot select opponent's piece!"
+          false
+        end
+      else
+        messages << 'ERROR: No piece on that square!'
+        false
+      end
+    else
+      messages << 'ERROR: Selection is off the board!'
+      false
+    end
+  end
+
+  def path_clear?(from_row, from_col, to_row, to_col)
+    # The path is always clear for knights
+    if board.square(from_row,from_col).class == Knight
+      return true
+    else
+      # Check for pieces on intervening squares
+      # The single step corresponding to the move (-1, 0, 1)
+      row_step = to_row <=> from_row
+      col_step = to_col <=> from_col
+
+      temp_row = from_row + row_step
+      temp_col = from_col + col_step
+
+      until temp_row == to_row && temp_col == to_col
+        if board.in_bounds?(temp_row,temp_col)
+
+          # if a piece is there
+          if board.square(temp_row,temp_col)
+            messages << "PATH_CLEAR_ERROR: Path blocked!"
+            return false
+          else
+            temp_row += row_step
+            temp_col += col_step
+          end
+        else
+          messages << "PATH_CLEAR_ERROR: Path goes out of bounds!"
+          return false
+        end
+      end
+
+      # If no piece is encountered along the move path, return true
+      return true
+    end
   end
 
   # Determines whether the origin piece can complete a move to the given coordinates
@@ -355,29 +462,6 @@ class ChessGame
         end
       end
     end
-  end
-
-  # Returns true if that move does not result in check
-  def safe_move?( team, from_row,from_col, to_row, to_col)
-    backup_board = Marshal.load(Marshal.dump(board))
-
-    # try the move
-    board.move_piece(from_row,from_col,to_row,to_col)
-    piece_sensing
-
-    if game_state == "check_#{team}".to_sym
-      result = false
-    else
-      result = true
-    end
-
-    # reverse move and switch back to the backup board
-    board.move_piece(to_row,to_col,from_row,from_col)
-    self.board = backup_board
-    piece_sensing
-
-    # Return the result of this check
-    result
   end
 
   def mate?(team)
@@ -580,59 +664,6 @@ class ChessGame
     end
   end
 
-  def move(player, coord_string)
-    from_row = selected[0]
-    from_col = selected[1]
-    from_piece = board.square(from_row,from_col)
-
-    move_type = find_move_type(player, coord_string)
-
-    if  move_type == :illegal ||
-        move_type == :resignation ||
-        move_type == :offer_draw
-      false
-    else
-      if move_type.to_s[0..5] == 'castle'
-        if move_type == :castle_ks
-          to_col = 6
-        elsif move_type == :castle_qs
-          to_col = 2
-        end
-
-        if player == :white
-          to_row = 0
-        else
-          to_row = 7
-        end
-      else
-        coords = chess_coords_to_indices(coord_string)
-        to_row = coords[0]
-        to_col = coords[1]
-      end
-
-      if from_piece.move_ok?(to_row, to_col, move_type)
-        # convert the coordinates to array indices
-        if move_type == :normal
-          normal_move(player, coord_string, from_row, from_col, to_row, to_col)
-        elsif move_type == :capture
-          normal_move(player, coord_string, from_row, from_col, to_row, to_col)
-        elsif move_type == :passant
-          passant_move(player, from_row, from_col, to_row, to_col)
-        elsif move_type == :castle_ks || move_type == :castle_qs
-          castle_move(player, coord_string)
-        elsif move_type.to_s[0..6] == 'promote'
-          promote_move(player, to_col, move_type)
-        end
-        unselect
-        true
-      else
-        # If it is an illegal move
-        messages << 'ERROR: Illegal move for piece.'
-        false
-      end
-    end
-  end
-
   def normal_move(player, coord_string, from_row, from_col, to_row, to_col)
     from_piece = board.square(from_row,from_col)
 
@@ -726,58 +757,27 @@ class ChessGame
     messages << "MOVE: #{player.capitalize} captured Pawn en passant"
   end
 
-  def resign(player)
-    messages << "RESIGNATION: The player with the #{player.capitalize} pieces has resigned!"
+  # Takes a standard chess coordinate string and returns array indices
+  def chess_coords_to_indices(coord_string)
+    if m = coord_string.match(/(\w)(\d)/)
+      col = m[1]
+      row = m[2]
 
-    if player == :white
-      declare_victory(:black)
+      columns = { a: 0, b: 1, c: 2, d: 3, e: 4, f: 5, g: 6, h: 7 }
+
+      if ('a'..'h').include?(col) && (1..8).include?(row.to_i)
+        [row.to_i - 1, columns[col.to_sym]]
+      else
+        false
+      end
     else
-      declare_victory(:white)
+      false
     end
   end
 
-  def stalemate(player)
-    messages << "STALEMATE: #{player.capitalize} is in a stalemate."
-    draw
-  end
-
-  def checkmate(player)
-    messages << "CHECKMATE: #{player.capitalize} won in a checkmate!"
-
-    if player == :white
-      declare_victory(:black)
-    else
-      declare_victory(:white)
-    end
-  end
-
-  def declare_victory(player)
-    self.game_state = "#{player}_win".to_sym
-    messages << "WIN: The player with the #{player.capitalize} pieces has won!"
-    update
-  end
-
-  def offer_draw(player)
-    self.input_mode = :draw_offered
-    messages << "DRAW OFFERED: #{player.capitalize} has suggested a draw."
-    switch_player
-  end
-
-  def answer_draw(draw_accepted)
-    if draw_accepted
-      messages << "DRAW ACCEPTED: Players have agreed to a draw."
-      draw
-    else
-      messages << "DRAW REJECTED: No agreement on ending in a draw."
-      self.input_mode = :selecting
-      switch_player
-    end
-  end
-
-  def draw
-    messages << "DRAW: The game has ended in a draw."
-    self.game_state = :draw
-    update
+  def indices_to_chess_coords(row, col)
+    columns = %w(a b c d e f g h)
+    "#{columns[col]}#{row + 1}"
   end
 
   def to_json
@@ -803,5 +803,9 @@ class ChessGame
     file.rewind
     file.write(to_json)
     file.close
+  end
+
+  def update
+    write_to_file
   end
 end
